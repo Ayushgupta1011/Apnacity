@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Discover NGOs and organizations working to improve our cities.">
+    <title>Apna City | NGO Directory</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f8fafc;
+            color: #183d2d;
+        }
+        /* NAVIGATION */
+        
+        .main-header {
+            background: white;
+            min-height: 75px;
+            padding: 14px 7%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .logo {
+            font-size: 27px;
+            font-weight: 700;
+            color: #176b4a;
+            text-decoration: none;
+        }
+        
+        .logo span {
+            color: #088178;
+        }
+        
+        #navbar {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+        
+        #navbar a {
+            text-decoration: none;
+            color: #183d2d;
+            font-size: 13px;
+            font-weight: 500;
+            position: relative;
+            transition: 0.3s;
+        }
+        
+        #navbar a:hover,
+        #navbar a.active {
+            color: #088178;
+        }
+        
+        #navbar a.active::after {
+            content: "";
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: #088178;
+            bottom: -8px;
+            left: 0;
+        }
+        
+        .menu-toggle {
+            display: none;
+            background: #e4f3e9;
+            color: #176b4a;
+            border: none;
+            padding: 10px 13px;
+            border-radius: 8px;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        /* HERO */
+        
+        .hero {
+            background: linear-gradient(120deg, #176b4a, #088178);
+            padding: 65px 7%;
+            color: white;
+            text-align: center;
+        }
+        
+        .hero-icon {
+            font-size: 42px;
+            margin-bottom: 18px;
+        }
+        
+        .hero h1 {
+            font-size: 36px;
+            margin-bottom: 15px;
+        }
+        
+        .hero p {
+            max-width: 680px;
+            margin: auto;
+            font-size: 14px;
+            line-height: 1.8;
+            opacity: 0.95;
+        }
+        /* MAIN */
+        
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 50px 20px;
+        }
+        
+        .section-title {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+        
+        .section-title h2 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        
+        .section-title p {
+            color: #66756c;
+            font-size: 14px;
+        }
+        /* STATISTICS */
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 22px;
+            border-radius: 12px;
+            border: 1px solid #e2ece5;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: #e4f3e9;
+            color: #176b4a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        
+        .stat-card h3 {
+            font-size: 22px;
+        }
+        
+        .stat-card p {
+            font-size: 12px;
+            color: #66756c;
+        }
+        /* ORGANIZATION CARDS */
+        
+        .organization-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 22px;
+        }
+        
+        .org-card {
+            background: white;
+            border: 1px solid #e2ece5;
+            border-radius: 15px;
+            padding: 24px;
+            transition: 0.3s;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .org-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(24, 61, 45, 0.09);
+        }
+        
+        .org-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+        
+        .org-icon {
+            width: 55px;
+            height: 55px;
+            background: #e4f3e9;
+            color: #176b4a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 13px;
+            font-size: 24px;
+        }
+        
+        .verified {
+            color: #176b4a;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .org-card h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        
+        .category {
+            display: inline-block;
+            align-self: flex-start;
+            background: #e4f3e9;
+            color: #176b4a;
+            padding: 5px 11px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 13px;
+        }
+        
+        .org-description {
+            font-size: 13px;
+            color: #66756c;
+            line-height: 1.8;
+            margin-bottom: 18px;
+            flex: 1;
+        }
+        
+        .org-info {
+            border-top: 1px solid #edf1ed;
+            padding-top: 14px;
+        }
+        
+        .org-info p {
+            font-size: 12px;
+            color: #66756c;
+            margin-bottom: 8px;
+        }
+        
+        .org-info i {
+            width: 20px;
+            color: #088178;
+        }
+        
+        .org-actions {
+            margin-top: 18px;
+        }
+        
+        .btn {
+            display: block;
+            width: 100%;
+            text-align: center;
+            text-decoration: none;
+            padding: 11px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            transition: 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-primary {
+            background: #176b4a;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #088178;
+        }
+        /* FOOTER */
+        
+        .apna-footer {
+            background: #183d2d;
+            color: white;
+            padding: 50px 7% 20px;
+            margin-top: 40px;
+        }
+        
+        .footer-container {
+            max-width: 1200px;
+            margin: auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 40px;
+            padding-bottom: 35px;
+        }
+        
+        .footer-logo {
+            color: white;
+            font-size: 25px;
+            font-weight: 700;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+        
+        .footer-logo span {
+            color: #56c69a;
+        }
+        
+        .footer-about p {
+            font-size: 13px;
+            line-height: 1.9;
+            color: #c5d8cc;
+            max-width: 390px;
+        }
+        
+        .footer-column h3 {
+            font-size: 15px;
+            margin-bottom: 18px;
+            color: white;
+        }
+        
+        .footer-column a {
+            display: block;
+            color: #c5d8cc;
+            text-decoration: none;
+            font-size: 13px;
+            margin-bottom: 12px;
+            transition: 0.3s;
+        }
+        
+        .footer-column a:hover {
+            color: #56c69a;
+            padding-left: 4px;
+        }
+        
+        .footer-social {
+            display: flex;
+            gap: 12px;
+            margin-top: 18px;
+        }
+        
+        .footer-social a {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.12);
+            color: white;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+        
+        .footer-social a:hover {
+            background: #088178;
+            transform: translateY(-3px);
+        }
+        
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            padding-top: 20px;
+            text-align: center;
+            color: #c5d8cc;
+            font-size: 12px;
+        }
+        /* RESPONSIVE */
+        
+        @media(max-width: 950px) {
+            #navbar {
+                gap: 15px;
+            }
+            #navbar a {
+                font-size: 12px;
+            }
+            .organization-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media(max-width: 700px) {
+            .main-header {
+                padding: 14px 5%;
+            }
+            .menu-toggle {
+                display: block;
+            }
+            #navbar {
+                display: none;
+                position: absolute;
+                top: 75px;
+                left: 0;
+                width: 100%;
+                background: white;
+                padding: 20px 7%;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 20px;
+                box-shadow: 0 8px 15px rgba(0, 0, 0, 0.08);
+            }
+            #navbar.show {
+                display: flex;
+            }
+            #navbar a.active::after {
+                display: none;
+            }
+            .hero {
+                padding: 50px 6%;
+            }
+            .hero h1 {
+                font-size: 27px;
+            }
+            .stats {
+                grid-template-columns: 1fr;
+            }
+            .organization-grid {
+                grid-template-columns: 1fr;
+            }
+            .footer-container {
+                grid-template-columns: 1fr;
+                gap: 28px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVIGATION -->
+    <header class="main-header">
+
+        <a href="index.html" class="logo">
+            Apna<span>City</span>
+        </a>
+
+        <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="navbar">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <nav id="navbar">
+            <a href="index.html">Home</a>
+            <a href="report.html">Report Issue</a>
+            <a href="track.html">Track Status</a>
+            <a href="impact.html">Verified Impact</a>
+            <a href="ngo.html" class="active">NGOs & Organizations</a>
+            <a href="about.html">About Us</a>
+        </nav>
+
+    </header>
+
+    <!-- HERO -->
+    <section class="hero">
+
+        <div class="hero-icon">
+            <i class="fa-solid fa-handshake-angle"></i>
+        </div>
+
+        <h1>NGOs & Organizations</h1>
+
+        <p>
+            Discover NGOs, community groups and organizations currently working to solve civic problems and improve our cities. Connect, collaborate and create impact.
+        </p>
+
+    </section>
+
+    <!-- MAIN CONTENT -->
+    <main class="container">
+
+        <div class="section-title">
+            <h2>Organizations Working for Our City</h2>
+            <p>Explore organizations contributing towards a cleaner, safer and better city.</p>
+        </div>
+
+        <!-- STATISTICS -->
+        <div class="stats">
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fa-solid fa-building"></i>
+                </div>
+                <div>
+                    <h3>6</h3>
+                    <p>Listed Organizations</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fa-solid fa-handshake"></i>
+                </div>
+                <div>
+                    <h3>5</h3>
+                    <p>Working Categories</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fa-solid fa-location-dot"></i>
+                </div>
+                <div>
+                    <h3>Multiple</h3>
+                    <p>Working Locations</p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ORGANIZATION CARDS -->
+        <div class="organization-grid">
+
+            <article class="org-card">
+                <div class="org-top">
+                    <div class="org-icon">
+                        <i class="fa-solid fa-leaf"></i>
+                    </div>
+                    <span class="verified">
+                        <i class="fa-solid fa-circle-check"></i> Listed
+                    </span>
+                </div>
+
+                <span class="category">Environment</span>
+                <h3>Environment Action Group</h3>
+
+                <p class="org-description">
+                    A sample listing for an organization focused on cleanliness, waste management and environmental awareness.
+                </p>
+
+                <div class="org-info">
+                    <p><i class="fa-solid fa-location-dot"></i> Chandigarh, India</p>
+                    <p><i class="fa-solid fa-clock"></i> Activity: To be confirmed</p>
+                </div>
+
+                <div class="org-actions">
+                    <button class="btn btn-primary" onclick="showNotice()">
+                        View Details
+                    </button>
+                </div>
+            </article>
+
+            <article class="org-card">
+                <div class="org-top">
+                    <div class="org-icon">
+                        <i class="fa-solid fa-book-open"></i>
+                    </div>
+                    <span class="verified">
+                        <i class="fa-solid fa-circle-check"></i> Listed
+                    </span>
+                </div>
+
+                <span class="category">Education</span>
+                <h3>Community Education Initiative</h3>
+
+                <p class="org-description">
+                    A sample listing for a group supporting education, learning opportunities and community development.
+                </p>
+
+                <div class="org-info">
+                    <p><i class="fa-solid fa-location-dot"></i> Mohali, India</p>
+                    <p><i class="fa-solid fa-clock"></i> Activity: To be confirmed</p>
+                </div>
+
+                <div class="org-actions">
+                    <button class="btn btn-primary" onclick="showNotice()">
+                        View Details
+                    </button>
+                </div>
+            </article>
+
+            <article class="org-card">
+                <div class="org-top">
+                    <div class="org-icon">
+                        <i class="fa-solid fa-heart-pulse"></i>
+                    </div>
+                    <span class="verified">
+                        <i class="fa-solid fa-circle-check"></i> Listed
+                    </span>
+                </div>
+
+                <span class="category">Health</span>
+                <h3>Community Health Support</h3>
+
+                <p class="org-description">
+                    A sample listing for an organization supporting health awareness and community welfare activities.
+                </p>
+
+                <div class="org-info">
+                    <p><i class="fa-solid fa-location-dot"></i> Panchkula, India</p>
+                    <p><i class="fa-solid fa-clock"></i> Activity: To be confirmed</p>
+                </div>
+
+                <div class="org-actions">
+                    <button class="btn btn-primary" onclick="showNotice()">
+                        View Details
+                    </button>
+                </div>
+            </article>
+
+            <article class="org-card">
+                <div class="org-top">
+                    <div class="org-icon">
+                        <i class="fa-solid fa-people-group"></i>
+                    </div>
+                    <span class="verified">
+                        <i class="fa-solid fa-circle-check"></i> Listed
+                    </span>
+                </div>
+
+                <span class="category">Community Development</span>
+                <h3>Local Community Welfare Group</h3>
+
+                <p class="org-description">
+                    A sample listing for community volunteers working on local development and citizen support.
+                </p>
+
+                <div class="org-info">
+                    <p><i class="fa-solid fa-location-dot"></i> Chandigarh, India</p>
+                    <p><i class="fa-solid fa-clock"></i> Activity: To be confirmed</p>
+                </div>
+
+                <div class="org-actions">
+                    <button class="btn btn-primary" onclick="showNotice()">
+                        View Details
+                    </button>
+                </div>
+            </article>
+
+            <article class="org-card">
+                <div class="org-top">
+                    <div class="org-icon">
+                        <i class="fa-solid fa-paw"></i>
+                    </div>
+                    <span class="verified">
+                        <i class="fa-solid fa-circle-check"></i> Listed
+                    </span>
+                </div>
+
+                <span class="category">Animal Welfare</span>
+                <h3>Animal Care Support Group</h3>
+
+                <p class="org-description">
+                    A sample listing for volunteers and organizations supporting animal welfare and rescue activities.
+                </p>
+
+                <div class="org-info">
+                    <p><i class="fa-solid fa-location-dot"></i> Mohali, India</p>
+                    <p><i class="fa-solid fa-clock"></i> Activity: To be confirmed</p>
+                </div>
+
+                <div class="org-actions">
+                    <button class="btn btn-primary" onclick="showNotice()">
+                        View Details
+                    </button>
+                </div>
+            </article>
+
+            <article class="org-card">
+                <div class="org-top">
+                    <div class="org-icon">
+                        <i class="fa-solid fa-recycle"></i>
+                    </div>
+                    <span class="verified">
+                        <i class="fa-solid fa-circle-check"></i> Listed
+                    </span>
+                </div>
+
+                <span class="category">Environment</span>
+                <h3>Clean City Volunteer Network</h3>
+
+                <p class="org-description">
+                    A sample listing for volunteers promoting neighbourhood cleanliness and recycling.
+                </p>
+
+                <div class="org-info">
+                    <p><i class="fa-solid fa-location-dot"></i> Zirakpur, India</p>
+                    <p><i class="fa-solid fa-clock"></i> Activity: To be confirmed</p>
+                </div>
+
+                <div class="org-actions">
+                    <button class="btn btn-primary" onclick="showNotice()">
+                        View Details
+                    </button>
+                </div>
+            </article>
+
+        </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="apna-footer">
+
+        <div class="footer-container">
+
+            <div class="footer-about">
+                <a href="index.html" class="footer-logo">
+                    Apna<span>City</span>
+                </a>
+
+                <p>
+                    Apna City is a civic engagement platform that connects citizens, authorities and organizations to build cleaner, safer and better communities.
+                </p>
+
+                <div class="footer-social">
+                    <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+                    <a href="#" aria-label="X"><i class="fa-brands fa-x-twitter"></i></a>
+                </div>
+            </div>
+
+            <div class="footer-column">
+                <h3>Quick Links</h3>
+                <a href="index.html">Home</a>
+                <a href="report.html">Report an Issue</a>
+                <a href="track.html">Track Complaint</a>
+                <a href="impact.html">Verified Impact</a>
+            </div>
+
+            <div class="footer-column">
+                <h3>Explore</h3>
+                <a href="ngo.html">NGO Directory</a>
+                <a href="about.html">About Us</a>
+                <a href="index.html">Our Mission</a>
+                <a href="index.html">Community</a>
+            </div>
+
+        </div>
+
+        <div class="footer-bottom">
+            <p>
+                © <span id="year"></span> Apna City. All Rights Reserved. Building Better Cities Together.
+            </p>
+        </div>
+
+    </footer>
+
+    <!-- JAVASCRIPT -->
+    <script>
+        // Mobile navigation
+        const menuToggle = document.getElementById("menuToggle");
+        const navbar = document.getElementById("navbar");
+
+        menuToggle.addEventListener("click", function() {
+            const isOpen = navbar.classList.toggle("show");
+
+            menuToggle.setAttribute("aria-expanded", isOpen);
+            menuToggle.innerHTML = isOpen ?
+                '<i class="fa-solid fa-xmark"></i>' :
+                '<i class="fa-solid fa-bars"></i>';
+        });
+
+        // Close mobile menu after clicking a link
+        navbar.querySelectorAll("a").forEach(link => {
+            link.addEventListener("click", function() {
+                navbar.classList.remove("show");
+                menuToggle.setAttribute("aria-expanded", "false");
+                menuToggle.innerHTML = '<i class="fa-solid fa-bars"></i>';
+            });
+        });
+
+        // Organization details notice
+        function showNotice() {
+            alert("Detailed organization information will be available soon.");
+        }
+
+        // Dynamic footer year
+        document.getElementById("year").textContent =
+            new Date().getFullYear();
+    </script>
+
+</body>
+
+</html>

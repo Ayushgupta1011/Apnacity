@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>ApnaCity | Create Account</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #dcefe5, #f4f8f5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 30px 15px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 550px;
+        }
+        /* Logo */
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .logo img {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .logo h2 {
+            font-size: 28px;
+            color: #176b4a;
+            text-align: center;
+            margin-top: 8px;
+        }
+        
+        .logo p {
+            color: #666;
+            text-align: center;
+            margin-top: 5px;
+        }
+        /* Signup Card */
+        
+        .signup-card {
+            background: white;
+            padding: 35px;
+            border-radius: 18px;
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.12);
+            animation: slideUp 0.5s ease;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .signup-card h1 {
+            text-align: center;
+            color: #176b4a;
+            margin-bottom: 10px;
+            font-size: 27px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #777;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+        /* Form */
+        
+        .form-group {
+            margin-bottom: 18px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .input-box {
+            position: relative;
+        }
+        
+        .input-box i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #176b4a;
+        }
+        
+        .input-box input {
+            width: 100%;
+            padding: 13px 13px 13px 42px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            outline: none;
+            font-size: 15px;
+            transition: 0.3s;
+        }
+        
+        .input-box input:focus {
+            border-color: #176b4a;
+            box-shadow: 0 0 5px rgba(23, 107, 74, 0.2);
+        }
+        /* Admin Option */
+        
+        .admin-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 22px 0;
+            color: #555;
+            font-size: 14px;
+        }
+        
+        .admin-option input {
+            accent-color: #176b4a;
+            width: 16px;
+            height: 16px;
+        }
+        /* Button */
+        
+        .signup-btn {
+            width: 100%;
+            padding: 14px;
+            background: #176b4a;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        
+        .signup-btn:hover {
+            background: #104d35;
+            transform: translateY(-2px);
+        }
+        /* Login Link */
+        
+        .login-link {
+            text-align: center;
+            margin-top: 22px;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .login-link a {
+            color: #176b4a;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+        /* Footer */
+        
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #888;
+            font-size: 12px;
+            line-height: 1.8;
+        }
+        /* Responsive */
+        
+        @media(max-width: 480px) {
+            .signup-card {
+                padding: 25px 20px;
+            }
+            .signup-card h1 {
+                font-size: 23px;
+            }
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        <!-- Logo -->
+
+        <!-- Logo Section -->
+
+        <div class="logo">
+
+            <img src="C:\Users\AYUSH\Desktop\apnacity\img\logo.jpeg" alt="ApnaCity Logo">
+
+            <h2>ApnaCity</h2>
+
+            <p>Making Cities Better</p>
+
+        </div>
+
+
+        <!-- Signup Card -->
+
+        <div class="signup-card">
+
+            <h1>Create New Account</h1>
+
+            <p class="subtitle">
+                Join ApnaCity and help make your city better.
+            </p>
+
+            <!-- Signup Form -->
+
+            <form action="/signup" method="POST" id="signupForm">
+
+                <!-- Email -->
+
+                <div class="form-group">
+
+                    <label for="email">E-Mail</label>
+
+                    <div class="input-box">
+
+                        <i class="fa-solid fa-envelope"></i>
+
+                        <input type="email" name="email" id="email" placeholder="Enter your email" required>
+
+                    </div>
+
+                </div>
+
+                <!-- Confirm Email -->
+
+                <div class="form-group">
+
+                    <label for="confirm-email">Confirm E-Mail</label>
+
+                    <div class="input-box">
+
+                        <i class="fa-solid fa-envelope-circle-check"></i>
+
+                        <input type="email" name="confirm-email" id="confirm-email" placeholder="Confirm your email" required>
+
+                    </div>
+
+                </div>
+
+                <!-- Password -->
+
+                <div class="form-group">
+
+                    <label for="password">Password</label>
+
+                    <div class="input-box">
+
+                        <i class="fa-solid fa-lock"></i>
+
+                        <input type="password" name="password" id="password" placeholder="Create password" minlength="6" required>
+
+                    </div>
+
+                </div>
+
+                <hr style="border: 0; border-top: 1px solid #eee; margin: 25px 0;">
+
+                <!-- Full Name -->
+
+                <div class="form-group">
+
+                    <label for="fullname">Full Name</label>
+
+                    <div class="input-box">
+
+                        <i class="fa-solid fa-user"></i>
+
+                        <input type="text" name="Fullname" id="fullname" placeholder="Enter your full name" required>
+
+                    </div>
+
+                </div>
+
+                <!-- Street -->
+
+                <div class="form-group">
+
+                    <label for="street">Street</label>
+
+                    <div class="input-box">
+
+                        <i class="fa-solid fa-road"></i>
+
+                        <input type="text" name="street" id="street" placeholder="Enter your street" required>
+
+                    </div>
+
+                </div>
+
+                <!-- Postal Code -->
+
+                <div class="form-group">
+
+                    <label for="postalcode">Postal Code</label>
+
+                    <div class="input-box">
+
+                        <i class="fa-solid fa-map-pin"></i>
+
+                        <input type="text" name="postalcode" id="postalcode" placeholder="Enter postal code" autocomplete="postal-code" required>
+
+                    </div>
+
+                </div>
+
+                <!-- City -->
+
+                <div class="form-group">
+
+                    <label for="city">City</label>
+
+                    <div class="input-box">
+
+                        <i class="fa-solid fa-city"></i>
+
+                        <input type="text" name="city" id="city" placeholder="Enter your city" required>
+
+                    </div>
+
+                </div>
+
+                <!-- Admin Checkbox -->
+
+                <div class="admin-option">
+
+                    <input type="checkbox" id="isAdmin" name="isAdmin" value="true">
+
+                    <label for="isAdmin">
+                        Register as Admin
+                    </label>
+
+                </div>
+
+                <!-- Submit Button -->
+
+                <button type="submit" class="signup-btn">
+
+                    <i class="fa-solid fa-user-plus"></i>
+
+                    Create Account
+
+                </button>
+
+            </form>
+
+            <!-- Login Link -->
+
+            <div class="login-link">
+
+                Already have an account?
+
+                <a href="/login">Login Instead</a>
+
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+
+        <footer>
+
+            © 2026 ApnaCity. All Rights Reserved.
+
+            <br> Together, Let's Make Our Cities Better.
+
+        </footer>
+
+    </div>
+
+    <!-- Email Confirmation Validation -->
+
+    <script>
+        document.getElementById("signupForm")
+            .addEventListener("submit", function(event) {
+
+                const email =
+                    document.getElementById("email").value;
+
+                const confirmEmail =
+                    document.getElementById("confirm-email").value;
+
+                if (email.trim().toLowerCase() !==
+                    confirmEmail.trim().toLowerCase()) {
+
+                    event.preventDefault();
+
+                    alert("Email addresses do not match!");
+
+                }
+
+            });
+    </script>
+
+</body>
+
+</html>

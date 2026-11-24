@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apna City | Verified Impact</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f8fafc;
+            color: #183d2d;
+        }
+        
+        .verified-impact {
+            padding: 65px 7%;
+            background: #f8fafc;
+        }
+        
+        .impact-heading {
+            text-align: center;
+            margin-bottom: 45px;
+        }
+        
+        .impact-heading .tag {
+            display: inline-block;
+            background: #e4f3e9;
+            color: #176b4a;
+            padding: 7px 17px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        
+        .impact-heading h1 {
+            font-size: 34px;
+            color: #183d2d;
+            margin-bottom: 12px;
+        }
+        
+        .impact-heading p {
+            color: #66756c;
+            font-size: 15px;
+        }
+        
+        .impact-container {
+            max-width: 1150px;
+            margin: auto;
+            display: grid;
+            grid-template-columns: 1fr 160px 1fr;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .impact-card {
+            background: white;
+            border-radius: 18px;
+            overflow: hidden;
+            border: 1px solid #e0ebe4;
+            box-shadow: 0 8px 25px rgba(24, 61, 45, 0.07);
+            transition: 0.3s ease;
+        }
+        
+        .impact-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 14px 30px rgba(24, 61, 45, 0.12);
+        }
+        
+        .impact-image {
+            height: 250px;
+            background: #e4f3e9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        
+        .impact-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .image-placeholder {
+            color: #176b4a;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .image-placeholder i {
+            font-size: 45px;
+            margin-bottom: 12px;
+        }
+        
+        .impact-content {
+            padding: 24px;
+        }
+        
+        .impact-label {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 13px;
+        }
+        
+        .before-label {
+            background: #fff0e7;
+            color: #c05a26;
+        }
+        
+        .after-label {
+            background: #e4f3e9;
+            color: #176b4a;
+        }
+        
+        .impact-content h2 {
+            font-size: 22px;
+            margin-bottom: 10px;
+            color: #183d2d;
+        }
+        
+        .impact-content p {
+            font-size: 14px;
+            color: #66756c;
+            line-height: 1.7;
+            margin-bottom: 18px;
+        }
+        
+        .impact-location {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #176b4a;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        /* CENTER ARROW */
+        
+        .impact-middle {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: 13px;
+        }
+        
+        .impact-middle .arrow-circle {
+            width: 65px;
+            height: 65px;
+            background: #176b4a;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 25px;
+            box-shadow: 0 7px 18px rgba(23, 107, 74, 0.25);
+        }
+        
+        .impact-middle h3 {
+            font-size: 15px;
+            color: #176b4a;
+        }
+        
+        .impact-middle p {
+            font-size: 12px;
+            color: #66756c;
+            line-height: 1.6;
+        }
+        
+        .verified-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: #e4f3e9;
+            color: #176b4a;
+            padding: 8px 15px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 18px;
+        }
+        
+        .impact-footer {
+            text-align: center;
+            margin-top: 45px;
+        }
+        
+        .impact-footer p {
+            color: #66756c;
+            font-size: 14px;
+        }
+        
+        .impact-footer i {
+            color: #088178;
+            margin-right: 7px;
+        }
+        /* RESPONSIVE */
+        
+        @media (max-width: 850px) {
+            .impact-container {
+                grid-template-columns: 1fr;
+                max-width: 550px;
+            }
+            .impact-middle {
+                padding: 10px 0;
+            }
+            .impact-middle .arrow-circle i {
+                transform: rotate(90deg);
+            }
+            .impact-heading h1 {
+                font-size: 28px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .verified-impact {
+                padding: 45px 5%;
+            }
+            .impact-heading h1 {
+                font-size: 25px;
+            }
+            .impact-image {
+                height: 200px;
+            }
+            .impact-content {
+                padding: 19px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <section class="verified-impact">
+
+        <div class="impact-heading">
+            <span class="tag">
+        <i class="fa-solid fa-shield-halved"></i>
+        TRANSPARENT CIVIC ACTION
+      </span>
+
+            <h1>Verified Impact</h1>
+
+            <p>
+                See how citizen reports create real improvements in our city.
+            </p>
+        </div>
+
+        <div class="impact-container">
+
+            <!-- BEFORE SECTION -->
+            <div class="impact-card">
+
+                <div class="impact-image">
+                    <!-- Replace this placeholder with your BEFORE image -->
+                    <div class="image-placeholder">
+                        <i class="fa-solid fa-road"></i>
+                        <p>Before Image</p>
+                    </div>
+                </div>
+
+                <div class="impact-content">
+                    <span class="impact-label before-label">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            BEFORE
+          </span>
+
+                    <h2>Road Damage Reported</h2>
+
+                    <p>
+                        A damaged road with potholes created difficulties for commuters and local residents.
+                    </p>
+
+                    <div class="impact-location">
+                        <i class="fa-solid fa-location-dot"></i> Sector 22, Chandigarh
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ARROW AND TEXT -->
+            <div class="impact-middle">
+
+                <div class="arrow-circle">
+                    <i class="fa-solid fa-arrow-right"></i>
+                </div>
+
+                <h3>Citizen Action</h3>
+
+                <p>
+                    Complaint submitted<br> Authority notified<br> Work completed
+                </p>
+
+                <span class="verified-badge">
+          <i class="fa-solid fa-circle-check"></i>
+          Verified
+        </span>
+
+            </div>
+
+            <!-- AFTER SECTION -->
+            <div class="impact-card">
+
+                <div class="impact-image">
+                    <!-- Replace this placeholder with your AFTER image -->
+                    <div class="image-placeholder">
+                        <i class="fa-solid fa-road-circle-check"></i>
+                        <p>After Image</p>
+                    </div>
+                </div>
+
+                <div class="impact-content">
+                    <span class="impact-label after-label">
+            <i class="fa-solid fa-circle-check"></i>
+            AFTER
+          </span>
+
+                    <h2>Road Successfully Repaired</h2>
+
+                    <p>
+                        The damaged road was repaired and verified, making travel safer for residents.
+                    </p>
+
+                    <div class="impact-location">
+                        <i class="fa-solid fa-location-dot"></i> Sector 22, Chandigarh
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="impact-footer">
+            <p>
+                <i class="fa-solid fa-check-circle"></i> Every verified complaint brings us one step closer to a better city.
+            </p>
+        </div>
+
+    </section>
+
+</body>
+
+</html>
