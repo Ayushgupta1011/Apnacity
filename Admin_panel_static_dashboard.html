@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apna City | Civic Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box
+        }
+        
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #172033
+        }
+        
+        header {
+            background: #102a43;
+            color: white;
+            padding: 22px 30px
+        }
+        
+        header h1 {
+            margin: 0;
+            font-size: 27px
+        }
+        
+        header p {
+            margin: 7px 0 0;
+            color: #cbd5e1
+        }
+        
+        .container {
+            padding: 22px;
+            max-width: 1500px;
+            margin: auto
+        }
+        
+        .filters,
+        .cards,
+        .charts {
+            display: grid;
+            gap: 15px
+        }
+        
+        .filters {
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            background: white;
+            padding: 18px;
+            border-radius: 12px;
+            margin-bottom: 20px
+        }
+        
+        label {
+            font-size: 12px;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 7px
+        }
+        
+        select,
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 7px;
+            background: white
+        }
+        
+        button {
+            border: 0;
+            padding: 11px 17px;
+            border-radius: 7px;
+            background: #2563eb;
+            color: white;
+            cursor: pointer
+        }
+        
+        .cards {
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            margin-bottom: 20px
+        }
+        
+        .card,
+        .panel {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px #0000000b
+        }
+        
+        .card p {
+            color: #64748b;
+            margin: 0;
+            font-size: 13px
+        }
+        
+        .card h2 {
+            font-size: 30px;
+            margin: 12px 0 0
+        }
+        
+        .charts {
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            margin-bottom: 20px
+        }
+        
+        .chart-box {
+            height: 280px;
+            position: relative
+        }
+        
+        .panel h3 {
+            margin-top: 0
+        }
+        
+        .table-wrap {
+            overflow-x: auto
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 850px
+        }
+        
+        th,
+        td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 13px
+        }
+        
+        th {
+            background: #f8fafc
+        }
+        
+        .status {
+            padding: 5px 9px;
+            border-radius: 15px;
+            background: #e0f2fe;
+            color: #0369a1
+        }
+        
+        .footer {
+            padding: 20px;
+            text-align: center;
+            color: #64748b;
+            font-size: 12px
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>APNA CITY</h1>
+        <p>Smart Civic Complaint Monitoring Dashboard</p>
+    </header>
+
+    <div class="container">
+
+        <h2>Dashboard Overview</h2>
+
+        <div class="filters" id="filters">
+            <div><label>City</label><select id="city"></select></div>
+            <div><label>Area / Locality</label><select id="area"></select></div>
+            <div><label>Zone</label><select id="zone"></select></div>
+            <div><label>Category</label><select id="category"></select></div>
+            <div><label>Issue</label><select id="issue"></select></div>
+            <div><label>Severity</label><select id="severity"></select></div>
+            <div><label>Authority</label><select id="authority"></select></div>
+            <div><label>Complaint Status</label><select id="status"></select></div>
+            <div><label>Escalation Level</label><select id="escalation"></select></div>
+            <div><label>NGO Involved</label><select id="ngo"></select></div>
+            <div><label>Citizen Group Active</label><select id="citizen"></select></div>
+            <div><label>AI Auto Routed</label><select id="ai"></select></div>
+            <div><label>Duplicate Found</label><select id="duplicate"></select></div>
+            <div>
+                <label>Search Complaint</label>
+                <input id="search" placeholder="Search ID or issue...">
+            </div>
+            <div style="align-self:end">
+                <button onclick="resetFilters()">Reset Filters ↻</button>
+            </div>
+        </div>
+
+        <div class="cards">
+            <div class="card">
+                <p>Total Complaints</p>
+                <h2 id="total">0</h2>
+            </div>
+            <div class="card">
+                <p>Resolved</p>
+                <h2 id="resolved">0</h2>
+            </div>
+            <div class="card">
+                <p>Pending</p>
+                <h2 id="pending">0</h2>
+            </div>
+            <div class="card">
+                <p>Critical Issues</p>
+                <h2 id="critical">0</h2>
+            </div>
+            <div class="card">
+                <p>AI Routed</p>
+                <h2 id="routed">0</h2>
+            </div>
+        </div>
+
+        <div class="charts">
+            <div class="panel">
+                <h3>Complaints by Category</h3>
+                <div class="chart-box"><canvas id="categoryChart"></canvas></div>
+            </div>
+            <div class="panel">
+                <h3>Complaints by Severity</h3>
+                <div class="chart-box"><canvas id="severityChart"></canvas></div>
+            </div>
+            <div class="panel">
+                <h3>Complaint Status</h3>
+                <div class="chart-box"><canvas id="statusChart"></canvas></div>
+            </div>
+            <div class="panel">
+                <h3>Complaints by Zone</h3>
+                <div class="chart-box"><canvas id="zoneChart"></canvas></div>
+            </div>
+            <div class="panel">
+                <h3>Authority Performance</h3>
+                <div class="chart-box"><canvas id="authorityChart"></canvas></div>
+            </div>
+            <div class="panel">
+                <h3>AI Confidence Distribution</h3>
+                <div class="chart-box"><canvas id="confidenceChart"></canvas></div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h3>Complaint Records</h3>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Complaint ID</th>
+                            <th>City</th>
+                            <th>Area</th>
+                            <th>Zone</th>
+                            <th>Issue</th>
+                            <th>Category</th>
+                            <th>Severity</th>
+                            <th>Status</th>
+                            <th>Authority</th>
+                            <th>AI Confidence</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">APNA CITY | Smart Civic Management System</div>
+
+    <script>
+        // Sample data. Replace this array with your actual SQL-exported records.
+        const complaints = [{
+            id: "DEL-CIV-0001",
+            city: "Delhi",
+            area: "Connaught Place",
+            zone: "Central",
+            issue: "Garbage Overflow",
+            category: "Sanitation",
+            severity: "High",
+            authority: "MCD",
+            status: "Pending",
+            escalation: "Level 2",
+            ngo: "Yes",
+            citizen: "Yes",
+            ai: "Yes",
+            duplicate: "No",
+            confidence: 95
+        }, {
+            id: "DEL-CIV-0002",
+            city: "Delhi",
+            area: "Rohini",
+            zone: "North",
+            issue: "Road Damage",
+            category: "Roads",
+            severity: "Critical",
+            authority: "PWD",
+            status: "In Progress",
+            escalation: "Level 3",
+            ngo: "No",
+            citizen: "Yes",
+            ai: "Yes",
+            duplicate: "No",
+            confidence: 92
+        }, {
+            id: "DEL-CIV-0003",
+            city: "Delhi",
+            area: "Dwarka",
+            zone: "South",
+            issue: "Water Leakage",
+            category: "Water",
+            severity: "Medium",
+            authority: "DJB",
+            status: "Resolved",
+            escalation: "Level 1",
+            ngo: "Yes",
+            citizen: "No",
+            ai: "No",
+            duplicate: "Yes",
+            confidence: 80
+        }, {
+            id: "DEL-CIV-0004",
+            city: "Delhi",
+            area: "Karol Bagh",
+            zone: "Central",
+            issue: "Street Light Failure",
+            category: "Electricity",
+            severity: "Low",
+            authority: "BSES",
+            status: "Pending",
+            escalation: "Level 1",
+            ngo: "No",
+            citizen: "No",
+            ai: "Yes",
+            duplicate: "No",
+            confidence: 88
+        }, {
+            id: "DEL-CIV-0005",
+            city: "Delhi",
+            area: "Saket",
+            zone: "South",
+            issue: "Drain Blockage",
+            category: "Sanitation",
+            severity: "High",
+            authority: "MCD",
+            status: "Resolved",
+            escalation: "Level 2",
+            ngo: "Yes",
+            citizen: "Yes",
+            ai: "Yes",
+            duplicate: "No",
+            confidence: 91
+        }, {
+            id: "DEL-CIV-0006",
+            city: "Delhi",
+            area: "Civil Lines",
+            zone: "North",
+            issue: "Water Shortage",
+            category: "Water",
+            severity: "Critical",
+            authority: "DJB",
+            status: "Pending",
+            escalation: "Level 3",
+            ngo: "No",
+            citizen: "Yes",
+            ai: "No",
+            duplicate: "No",
+            confidence: 97
+        }, {
+            id: "DEL-CIV-0007",
+            city: "Delhi",
+            area: "Lajpat Nagar",
+            zone: "South",
+            issue: "Road Damage",
+            category: "Roads",
+            severity: "Medium",
+            authority: "PWD",
+            status: "In Progress",
+            escalation: "Level 2",
+            ngo: "Yes",
+            citizen: "No",
+            ai: "Yes",
+            duplicate: "Yes",
+            confidence: 76
+        }, {
+            id: "DEL-CIV-0008",
+            city: "Delhi",
+            area: "Pitampura",
+            zone: "North",
+            issue: "Garbage Overflow",
+            category: "Sanitation",
+            severity: "High",
+            authority: "MCD",
+            status: "Resolved",
+            escalation: "Level 2",
+            ngo: "No",
+            citizen: "Yes",
+            ai: "Yes",
+            duplicate: "No",
+            confidence: 89
+        }, {
+            id: "DEL-CIV-0009",
+            city: "Delhi",
+            area: "Janakpuri",
+            zone: "West",
+            issue: "Street Light Failure",
+            category: "Electricity",
+            severity: "Low",
+            authority: "BSES",
+            status: "Pending",
+            escalation: "Level 1",
+            ngo: "Yes",
+            citizen: "No",
+            ai: "No",
+            duplicate: "No",
+            confidence: 70
+        }, {
+            id: "DEL-CIV-0010",
+            city: "Delhi",
+            area: "Mayur Vihar",
+            zone: "East",
+            issue: "Water Leakage",
+            category: "Water",
+            severity: "Critical",
+            authority: "DJB",
+            status: "In Progress",
+            escalation: "Level 3",
+            ngo: "Yes",
+            citizen: "Yes",
+            ai: "Yes",
+            duplicate: "No",
+            confidence: 98
+        }, {
+            id: "CHD-CIV-0011",
+            city: "Chandigarh",
+            area: "Sector 17",
+            zone: "Central",
+            issue: "Garbage Overflow",
+            category: "Sanitation",
+            severity: "Medium",
+            authority: "MC",
+            status: "Pending",
+            escalation: "Level 1",
+            ngo: "No",
+            citizen: "No",
+            ai: "Yes",
+            duplicate: "No",
+            confidence: 85
+        }, {
+            id: "CHD-CIV-0012",
+            city: "Chandigarh",
+            area: "Sector 22",
+            zone: "South",
+            issue: "Road Damage",
+            category: "Roads",
+            severity: "High",
+            authority: "PWD",
+            status: "Resolved",
+            escalation: "Level 2",
+            ngo: "Yes",
+            citizen: "Yes",
+            ai: "Yes",
+            duplicate: "No",
+            confidence: 94
+        }];
+
+        const fields = {
+            city: "city",
+            area: "area",
+            zone: "zone",
+            category: "category",
+            issue: "issue",
+            severity: "severity",
+            authority: "authority",
+            status: "status",
+            escalation: "escalation",
+            ngo: "ngo",
+            citizen: "citizen",
+            ai: "ai",
+            duplicate: "duplicate"
+        };
+
+        const charts = {};
+        const colors = ["#2563eb", "#16a34a", "#f59e0b", "#dc2626", "#8b5cf6", "#0891b2"];
+
+        function populateFilters() {
+            Object.entries(fields).forEach(([filter, field]) => {
+                const select = document.getElementById(filter);
+                const old = select.value;
+                const values = [...new Set(complaints.map(x => x[field]))].sort();
+                select.innerHTML = '<option value="">All</option>' + values.map(v => `<option value="${v}">${v}</option>`).join('');
+                select.value = values.includes(old) ? old : "";
+            });
+        }
+
+        function filteredData() {
+            const search = document.getElementById("search").value.toLowerCase();
+            return complaints.filter(row => {
+                return Object.entries(fields).every(([filter, field]) => {
+                    const selected = document.getElementById(filter).value;
+                    return !selected || row[field] === selected;
+                }) && (!search || row.id.toLowerCase().includes(search) || row.issue.toLowerCase().includes(search));
+            });
+        }
+
+        function countBy(data, key) {
+            const result = {};
+            data.forEach(row => result[row[key]] = (result[row[key]] || 0) + 1);
+            return result;
+        }
+
+        function drawChart(id, type, data) {
+            const canvas = document.getElementById(id);
+            if (!canvas) return;
+            if (typeof Chart === "undefined") {
+                canvas.parentElement.innerHTML = "<p>Chart library unavailable. Check internet connection.</p>";
+                return;
+            }
+            if (charts[id]) charts[id].destroy();
+            const labels = Object.keys(data);
+            charts[id] = new Chart(canvas, {
+                type: type,
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: "Complaints",
+                        data: Object.values(data),
+                        backgroundColor: colors,
+                        borderColor: colors,
+                        borderWidth: 1,
+                        borderRadius: type === "bar" ? 5 : 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: type === "doughnut" || type === "pie",
+                            position: "bottom"
+                        }
+                    },
+                    scales: type === "bar" ? {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    } : {}
+                }
+            });
+        }
+
+        function updateDashboard() {
+            const data = filteredData();
+            const total = data.length;
+            const resolved = data.filter(x => x.status === "Resolved").length;
+            const pending = data.filter(x => x.status === "Pending").length;
+            const critical = data.filter(x => x.severity === "Critical").length;
+            const routed = data.filter(x => x.ai === "Yes").length;
+
+            document.getElementById("total").textContent = total;
+            document.getElementById("resolved").textContent = resolved;
+            document.getElementById("pending").textContent = pending;
+            document.getElementById("critical").textContent = critical;
+            document.getElementById("routed").textContent = routed;
+
+            drawChart("categoryChart", "bar", countBy(data, "category"));
+            drawChart("severityChart", "doughnut", countBy(data, "severity"));
+            drawChart("statusChart", "pie", countBy(data, "status"));
+            drawChart("zoneChart", "bar", countBy(data, "zone"));
+            drawChart("authorityChart", "bar", countBy(data, "authority"));
+
+            const confidence = {
+                "0–50%": data.filter(x => x.confidence < 50).length,
+                "50–70%": data.filter(x => x.confidence >= 50 && x.confidence < 70).length,
+                "70–90%": data.filter(x => x.confidence >= 70 && x.confidence < 90).length,
+                "90–100%": data.filter(x => x.confidence >= 90).length
+            };
+            drawChart("confidenceChart", "bar", confidence);
+
+            document.getElementById("tableBody").innerHTML = data.map(x => `
+<tr>
+<td>${x.id}</td><td>${x.city}</td><td>${x.area}</td>
+<td>${x.zone}</td><td>${x.issue}</td><td>${x.category}</td>
+<td>${x.severity}</td><td><span class="status">${x.status}</span></td>
+<td>${x.authority}</td><td>${x.confidence}%</td>
+</tr>`).join("") || '<tr><td colspan="10">No matching complaints found.</td></tr>';
+        }
+
+        function resetFilters() {
+            Object.keys(fields).forEach(id => document.getElementById(id).value = "");
+            document.getElementById("search").value = "";
+            updateDashboard();
+        }
+
+        Object.keys(fields).forEach(id => {
+            document.getElementById(id).addEventListener("change", updateDashboard);
+        });
+        document.getElementById("search").addEventListener("input", updateDashboard);
+
+        populateFilters();
+        updateDashboard();
+    </script>
+</body>
+
+</html>
