@@ -4,38 +4,351 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+
+    <title>ApnaCity | Register an Issue</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #dcefe5, #f4f8f5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 30px 15px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 550px;
+        }
+        /* Logo */
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .logo img {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .logo h2 {
+            font-size: 28px;
+            color: #176b4a;
+            margin-top: 8px;
+        }
+        
+        .logo p {
+            color: #666;
+            margin-top: 5px;
+        }
+        /* Card */
+        
+        .signup-card {
+            background: white;
+            padding: 35px;
+            border-radius: 18px;
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.12);
+            animation: slideUp 0.5s ease;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .signup-card h1 {
+            text-align: center;
+            color: #176b4a;
+            margin-bottom: 10px;
+            font-size: 27px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #777;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+        /* Form */
+        
+        .form-group {
+            margin-bottom: 18px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .input-box {
+            position: relative;
+        }
+        
+        .input-box i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #176b4a;
+        }
+        
+        .input-box.textarea i {
+            top: 20px;
+            transform: none;
+        }
+        
+        .input-box input,
+        .input-box textarea {
+            width: 100%;
+            padding: 13px 13px 13px 42px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            outline: none;
+            font-size: 15px;
+            transition: 0.3s;
+        }
+        
+        .input-box textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .input-box input:focus,
+        .input-box textarea:focus {
+            border-color: #176b4a;
+            box-shadow: 0 0 5px rgba(23, 107, 74, 0.2);
+        }
+        
+        .input-box input[readonly] {
+            background: #f4f8f5;
+            color: #555;
+        }
+        /* Location */
+        
+        .coords {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        
+        .location-btn {
+            width: 100%;
+            margin-top: 12px;
+            padding: 12px;
+            background: #e4f3e9;
+            color: #176b4a;
+            border: 1px dashed #176b4a;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        
+        .location-btn:hover {
+            background: #d3ebdb;
+        }
+        
+        .status-text {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #176b4a;
+            min-height: 18px;
+        }
+        
+        .status-text.error {
+            color: #c34242;
+        }
+        /* Button */
+        
+        .signup-btn {
+            width: 100%;
+            margin-top: 8px;
+            padding: 14px;
+            background: #176b4a;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        
+        .signup-btn:hover {
+            background: #104d35;
+            transform: translateY(-2px);
+        }
+        
+        .signup-btn:disabled {
+            background: #8fb5a3;
+            cursor: not-allowed;
+            transform: none;
+        }
+        /* Result box */
+        
+        .result {
+            display: none;
+            margin-top: 20px;
+            padding: 16px;
+            background: #e4f3e9;
+            border-radius: 10px;
+            color: #183d2d;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+        
+        .result strong {
+            color: #176b4a;
+        }
+        /* Links */
+        
+        .login-link {
+            text-align: center;
+            margin-top: 22px;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .login-link a {
+            color: #176b4a;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #888;
+            font-size: 12px;
+            line-height: 1.8;
+        }
+        
+        @media(max-width: 480px) {
+            .signup-card {
+                padding: 25px 20px;
+            }
+            .signup-card h1 {
+                font-size: 23px;
+            }
+            .coords {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 
 <body>
-    <div>
-        <form action="">
-            <p>
-                <label for="city">City</label><input type="text" name="city" id="city">
+
+    <div class="container">
+
+        <div class="logo">
+            <a href="index.html"><img src="img/logo.jpeg" alt="ApnaCity Logo"></a>
+            <h2>ApnaCity</h2>
+            <p>Making Cities Better</p>
+        </div>
+
+        <div class="signup-card">
+
+            <h1>Register an Issue</h1>
+            <p class="subtitle">
+                Tell us what's wrong in your area and we'll send it to the right department.
             </p>
 
-            <p>
-                <label for="Area">Area</label><input type="text" name="Area" id="Area">
-            </p>
+            <form id="reportForm">
 
-            <p>
-                <label for="Issue">Issue</label><input type="text" name="Issue" id="Issue">
-            </p>
+                <div class="form-group">
+                    <label for="city">City</label>
+                    <div class="input-box">
+                        <i class="fa-solid fa-city"></i>
+                        <input type="text" name="city" id="city" placeholder="Enter your city" required>
+                    </div>
+                </div>
 
-            <p>
-                <label>Location</label>
+                <div class="form-group">
+                    <label for="Area">Area</label>
+                    <div class="input-box">
+                        <i class="fa-solid fa-map-pin"></i>
+                        <input type="text" name="Area" id="Area" placeholder="Enter your area or locality" required>
+                    </div>
+                </div>
 
-                <input type="text" id="latitude" name="latitude" placeholder="Latitude" readonly>
+                <div class="form-group">
+                    <label for="Issue">Issue</label>
+                    <div class="input-box textarea">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <textarea name="Issue" id="Issue" placeholder="Describe the issue (e.g. pothole on main road, garbage not collected)" required></textarea>
+                    </div>
+                </div>
 
-                <input type="text" id="longitude" name="longitude" placeholder="Longitude" readonly>
+                <div class="form-group">
+                    <label>Location</label>
 
-                <button type="button" onclick="getLocation()">
-    📍 Use My Current Location
-</button>
+                    <div class="coords">
+                        <div class="input-box">
+                            <i class="fa-solid fa-location-dot"></i>
+                            <input type="text" id="latitude" name="latitude" placeholder="Latitude" readonly>
+                        </div>
+                        <div class="input-box">
+                            <i class="fa-solid fa-location-dot"></i>
+                            <input type="text" id="longitude" name="longitude" placeholder="Longitude" readonly>
+                        </div>
+                    </div>
 
-                <p id="locationStatus"></p>
-            </p>
-        </form>
+                    <button type="button" class="location-btn" onclick="getLocation()">
+                        <i class="fa-solid fa-crosshairs"></i> Use My Current Location
+                    </button>
+
+                    <p id="locationStatus" class="status-text"></p>
+                </div>
+
+                <button type="submit" class="signup-btn" id="submitBtn">
+                    <i class="fa-solid fa-paper-plane"></i> Submit Report
+                </button>
+
+                <p id="submitStatus" class="status-text" style="text-align:center;"></p>
+
+                <div id="result" class="result"></div>
+
+            </form>
+
+            <div class="login-link">
+                Already reported?
+                <a href="Track_report_status.html">Track your complaint</a>
+            </div>
+
+        </div>
+
+        <footer>
+            © 2026 ApnaCity. All Rights Reserved.
+            <br> Together, Let's Make Our Cities Better.
+        </footer>
 
     </div>
 
@@ -43,9 +356,11 @@
         function getLocation() {
 
             const status = document.getElementById("locationStatus");
+            status.classList.remove("error");
 
             if (!navigator.geolocation) {
                 status.textContent = "GPS is not supported by this browser.";
+                status.classList.add("error");
                 return;
             }
 
@@ -54,40 +369,85 @@
             navigator.geolocation.getCurrentPosition(
                 function(position) {
 
-                    const latitude = position.coords.latitude;
-                    const longitude = position.coords.longitude;
-
                     document.getElementById("latitude").value =
-                        latitude.toFixed(4);
+                        position.coords.latitude.toFixed(6);
 
                     document.getElementById("longitude").value =
-                        longitude.toFixed(4);
+                        position.coords.longitude.toFixed(6);
 
                     status.textContent = "✓ Location captured successfully";
-
                 },
 
                 function(error) {
-
-                    if (error.code === error.PERMISSION_DENIED) {
-                        status.textContent =
-                            "Location permission was denied.";
-                    } else {
-                        status.textContent =
-                            "Unable to get your location.";
-                    }
+                    status.classList.add("error");
+                    status.textContent =
+                        error.code === error.PERMISSION_DENIED ?
+                        "Location permission was denied." :
+                        "Unable to get your location.";
                 }
             );
         }
-        formData.append(
-            "latitude",
-            document.getElementById("latitude").value
-        );
 
-        formData.append(
-            "longitude",
-            document.getElementById("longitude").value
-        );
+        document.getElementById("reportForm").addEventListener("submit", async function(e) {
+
+            e.preventDefault();
+
+            const btn = document.getElementById("submitBtn");
+            const status = document.getElementById("submitStatus");
+            const result = document.getElementById("result");
+
+            status.classList.remove("error");
+            status.textContent = "Submitting...";
+            result.style.display = "none";
+            btn.disabled = true;
+
+            const body = {
+                city: document.getElementById("city").value,
+                area_locality: document.getElementById("Area").value,
+                issue: document.getElementById("Issue").value,
+                latitude: document.getElementById("latitude").value,
+                longitude: document.getElementById("longitude").value
+            };
+
+            try {
+                const res = await fetch("/api/reports", {
+                    method: "POST",
+                    credentials: "same-origin",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                if (res.status === 401) {
+                    status.classList.add("error");
+                    status.textContent = "Please log in first. Redirecting...";
+                    setTimeout(() => window.location.href = "login.html", 1200);
+                    return;
+                }
+
+                const data = await res.json();
+
+                if (data.success) {
+                    status.textContent = "✓ Report submitted successfully";
+                    result.innerHTML =
+                        "<strong>Complaint ID:</strong> " + data.complaint_id + "<br>" +
+                        "<strong>Category:</strong> " + data.analysis.category + "<br>" +
+                        "<strong>Sent to:</strong> " + data.analysis.responsible_authority;
+                    result.style.display = "block";
+                    document.getElementById("reportForm").reset();
+                } else {
+                    status.classList.add("error");
+                    status.textContent = data.message;
+                }
+
+            } catch (err) {
+                status.classList.add("error");
+                status.textContent = "Could not reach the server. Is civic.py running?";
+            } finally {
+                btn.disabled = false;
+            }
+        });
     </script>
 </body>
 
