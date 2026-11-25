@@ -10,7 +10,7 @@ import os
 import re
 import threading
 import webbrowser
-
+from gemini_service.py import analyze_complaint_with_gemini
 # ==========================================
 # CONFIGURATION
 # ==========================================
