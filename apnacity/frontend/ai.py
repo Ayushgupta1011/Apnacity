@@ -154,3 +154,29 @@ Return ONLY valid JSON:
         "severity": data.get("severity", "Medium"),
         "description": data.get("description", ""),
     }
+
+    # Compatibility for civic.py /api/reports
+def ai_analyze_issue(description):
+    """Simple fallback used by /api/reports - real letter is via generate_complaint_letter"""
+    desc = (description or "").lower()
+    if any(w in desc for w in ["garbage", "waste", "kuda"]):
+        cat, auth = "Waste Management", "Municipal Corporation"
+    elif any(w in desc for w in ["pothole", "road", "sadak"]):
+        cat, auth = "Road Damage", "Public Works Department"
+    elif "water" in desc:
+        cat, auth = "Water Supply", "Water Department"
+    elif any(w in desc for w in ["drain", "sewer", "nali"]):
+        cat, auth = "Drainage", "Drainage Department"
+    elif "light" in desc:
+        cat, auth = "Street Light", "Electrical Department"
+    else:
+        cat, auth = "Other", "Municipal Corporation"
+
+    return {
+        "issue": description,
+        "category": cat,
+        "responsible_authority": auth,
+        "severity": "Medium",
+        "ai_confidence": 0.8,
+        "priority_score": 50
+    }   
