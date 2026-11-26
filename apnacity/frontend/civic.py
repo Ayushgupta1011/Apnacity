@@ -1,4 +1,3 @@
-
 from flask import Flask, request, jsonify, send_from_directory, redirect
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -8,9 +7,15 @@ import mysql.connector
 from mysql.connector import Error
 import os
 import re
+import secrets
 import threading
+import time
 import webbrowser
-from gemini_service.py import analyze_complaint_with_gemini
+from mysql.connector import pooling
+from ai_routes import register_ai_routes
+from notify import register_notify_routes, new_complaint_id, notify_user, normalize_phone
+from extras import register_extra_routes, UPLOAD_FOLDER_NAME
+from gemini
 # ==========================================
 # CONFIGURATION
 # ==========================================
@@ -24,9 +29,21 @@ except ImportError:
     print("Install python-dotenv: pip install python-dotenv")
 
 app = Flask(__name__, static_folder=None)
-CORS(app)
+app.config["MAX_CONTENT_LENGTH"] = 8 * 1024 * 1024   # reject huge uploads early
 
-SECRET_KEY = os.getenv("JWT_SECRET", "CHANGE_THIS_SECRET")
+# The website and API are served from the same address, so CORS is not needed.
+# Only enable it if you host the frontend on a different domain:
+#   CORS_ORIGINS=https://myfrontend.com
+_origins = [o.strip() for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()]
+if _origins:
+    CORS(app, origins=_origins, supports_credentials=True)
+
+SECRET_KEY = os.getenv("JWT_SECRET")
+if not SECRET_KEY:
+    # Never run with a known default secret. Set JWT_SECRET in .env / hosting settings,
+    # otherwise logins reset every restart (and break with several workers).
+    SECRET_KEY = secrets.token_hex(32)
+    print("WARNING: JWT_SECRET is not set. Using a temporary random secret.")
 DB_NAME = os.getenv("DB_NAME", "apnacity")
 ALLOW_ADMIN_SIGNUP = os.getenv("ALLOW_ADMIN_SIGNUP", "false").lower() == "true"
 COOKIE_SECURE = os.getenv("COOKIE_SECURE", "false").lower() == "true"
@@ -51,17 +68,33 @@ def db_config(with_database=True):
     return config
 
 
+_pool = None
+
+
+def _pool_config():
+    config = db_config()
+    ssl_ca = os.getenv("DB_SSL_CA")          # needed by some cloud databases
+    if ssl_ca:
+        config["ssl_ca"] = ssl_ca
+    return config
+
+
 def get_db():
+    """Return a pooled connection. conn.close() gives it back to the pool."""
+    global _pool
     try:
-        conn = mysql.connector.connect(**db_config())
-
-        if conn.is_connected():
-            print("MySQL Database Connected Successfully!")
-
-        return conn
+        if _pool is None:
+            _pool = pooling.MySQLConnectionPool(
+                pool_name="apnacity",
+                pool_size=int(os.getenv("DB_POOL_SIZE", "5")),
+                pool_reset_session=True,
+                **_pool_config()
+            )
+        return _pool.get_connection()
 
     except Error as e:
         print("Database Connection Error:", e)
+        _pool = None
         return None
 
 
@@ -248,26 +281,25 @@ def to_float(value):
 # ==========================================
 
 CATEGORY_KEYWORDS = [
-    ("waste", "Waste Management"),
-    ("garbage", "Waste Management"),
-    ("trash", "Waste Management"),
-    ("pothole", "Road Damage"),
-    ("road", "Road Damage"),
-    ("water", "Water Supply"),
-    ("drain", "Drainage"),
-    ("sewer", "Drainage"),
-    ("sewage", "Drainage"),
-    ("streetlight", "Street Light"),
-    ("street light", "Street Light"),
+    # Longer phrases are checked first, so "water logged road" is Drainage, not Road
+    ("water logging", "Drainage"), ("waterlogging", "Drainage"),
+    ("water logged", "Drainage"), ("waterlogged", "Drainage"),
+    ("water leakage", "Water Supply"), ("water leak", "Water Supply"),
+    ("no water", "Water Supply"), ("drinking water", "Water Supply"),
+    ("pipeline", "Water Supply"), ("street light", "Street Light"),
+    ("streetlight", "Street Light"), ("open manhole", "Drainage"),
+    ("manhole", "Drainage"), ("sewerage", "Drainage"), ("sewage", "Drainage"),
+    ("sewer", "Drainage"), ("drain", "Drainage"), ("flood", "Drainage"),
+    ("garbage", "Waste Management"), ("waste", "Waste Management"),
+    ("trash", "Waste Management"), ("dustbin", "Waste Management"),
+    ("pothole", "Road Damage"), ("road", "Road Damage"),
+    ("footpath", "Road Damage"), ("water", "Water Supply"),
+    ("pollution", "Pollution"), ("smoke", "Pollution"), ("noise", "Pollution"),
+    ("stray", "Animal"), ("animal", "Animal"), ("dog", "Animal"), ("cattle", "Animal"),
+    ("tree", "Environment"), ("traffic", "Traffic"), ("parking", "Traffic"),
     ("light", "Street Light"),
-    ("pollution", "Pollution"),
-    ("smoke", "Pollution"),
-    ("animal", "Animal"),
-    ("dog", "Animal"),
-    ("cattle", "Animal"),
-    ("tree", "Environment"),
-    ("traffic", "Traffic")
 ]
+CATEGORY_KEYWORDS.sort(key=lambda kw: -len(kw[0]))
 
 DEPARTMENTS = {
     "Waste Management": "Municipal Corporation",
@@ -308,11 +340,48 @@ def ai_analyze_issue(description):
 
 
 # ==========================================
+# SIMPLE RATE LIMIT (per IP, in memory)
+# ==========================================
+
+_attempts = {}
+
+
+def client_ip():
+    forwarded = request.headers.get("X-Forwarded-For", "")
+    return forwarded.split(",")[0].strip() or request.remote_addr or "unknown"
+
+
+def too_many(key, limit, window):
+    now = time.time()
+    hits = [t for t in _attempts.get(key, []) if now - t < window]
+    if len(hits) >= limit:
+        _attempts[key] = hits
+        return True
+    hits.append(now)
+    _attempts[key] = hits
+    return False
+
+
+@app.after_request
+def security_headers(resp):
+    resp.headers.setdefault("X-Content-Type-Options", "nosniff")
+    resp.headers.setdefault("X-Frame-Options", "DENY")
+    resp.headers.setdefault("Referrer-Policy", "same-origin")
+    return resp
+
+
+# ==========================================
 # SIGNUP
 # ==========================================
 
 @app.route("/signup", methods=["POST"])
 def signup():
+
+    if too_many("signup:" + client_ip(), 10, 3600):
+        return jsonify({
+            "success": False,
+            "message": "Too many attempts. Please try again later."
+        }), 429
 
     data = get_input()
 
@@ -423,6 +492,14 @@ def login():
 
     email = (data.get("email") or "").strip().lower()
     password = data.get("password") or ""
+
+    if too_many("login:" + client_ip() + ":" + email, 10, 900):
+        if is_form_post():
+            return form_error("Too many attempts. Try again in 15 minutes.", "/login.html")
+        return jsonify({
+            "success": False,
+            "message": "Too many attempts. Try again in 15 minutes."
+        }), 429
 
     if not email or not password:
         return jsonify({
@@ -563,6 +640,27 @@ def create_report():
     description = description.strip()
     analysis = ai_analyze_issue(description)
 
+    # Use the AI's category/severity, but only if they are in our fixed lists
+    ai_cat = (data.get("category") or "").strip()
+    if ai_cat in DEPARTMENTS:
+        analysis["category"] = ai_cat
+        analysis["responsible_authority"] = DEPARTMENTS[ai_cat]
+
+    sev = (data.get("severity") or "").strip().title()
+    if sev in ("Low", "Medium", "High"):
+        analysis["severity"] = sev
+        analysis["priority_score"] = {"Low": 20, "Medium": 50, "High": 80}[sev]
+
+    letter = (data.get("letter") or "").strip()[:8000]
+
+    raw_phone = (data.get("phone") or "").strip()
+    phone = normalize_phone(raw_phone)
+    if raw_phone and not phone:
+        return jsonify({
+            "success": False,
+            "message": "Enter a valid 10-digit Indian mobile number"
+        }), 400
+
     conn = get_db()
 
     if not conn:
@@ -576,10 +674,30 @@ def create_report():
     try:
         cursor = conn.cursor()
 
-        complaint_id = (
-            "CIV-" +
-            datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")
-        )
+        # Duplicate check: same category, open, within ~200 m, last 30 days
+        lat = to_float(data.get("latitude"))
+        lng = to_float(data.get("longitude"))
+        if lat is not None and lng is not None and not data.get("force"):
+            cursor.execute("""
+                SELECT Complaint_ID FROM civic_complaints
+                WHERE Category = %s
+                  AND Complaint_Status IN ('Pending', 'In Progress')
+                  AND Latitude BETWEEN %s AND %s
+                  AND Longitude BETWEEN %s AND %s
+                  AND Created_At > (NOW() - INTERVAL 30 DAY)
+                LIMIT 1
+            """, (analysis["category"], lat - 0.002, lat + 0.002,
+                  lng - 0.002, lng + 0.002))
+            dup = cursor.fetchone()
+            if dup:
+                return jsonify({
+                    "success": False,
+                    "duplicate": True,
+                    "existing_id": dup[0],
+                    "message": "A similar complaint was already reported nearby."
+                }), 409
+
+        complaint_id = new_complaint_id()
 
         query = """
             INSERT INTO civic_complaints (
@@ -589,11 +707,12 @@ def create_report():
                 Citizen_Support_Count, NGO_Involved,
                 Citizen_Group_Active, Complaint_Status,
                 Days_Open, AI_Auto_Routed, Evidence,
-                Resolution_Verified, Priority_Score, User_ID
+                Resolution_Verified, Priority_Score, User_ID,
+                Complaint_Letter, Contact_Phone
             )
             VALUES (
                 %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
             )
         """
 
@@ -618,11 +737,21 @@ def create_report():
             data.get("evidence", "None"),
             "No",
             analysis["priority_score"],
-            payload["user_id"]
+            payload["user_id"],
+            letter or None,
+            phone or None
         )
 
         cursor.execute(query, values)
         conn.commit()
+
+        notify_user(
+            payload["user_id"],
+            complaint_id,
+            f"Your complaint {complaint_id} has been registered and sent to "
+            f"{analysis['responsible_authority']}.",
+            phone
+        )
 
         return jsonify({
             "success": True,
@@ -677,7 +806,9 @@ def list_reports():
         columns = """
             Complaint_ID, City, Area_Locality, Issue, Category,
             Responsible_Authority, Severity, Complaint_Status,
-            Days_Open, Resolution_Verified, Priority_Score, Created_At
+            DATEDIFF(NOW(), Created_At) AS Days_Open,
+            Resolution_Verified, Priority_Score, Citizen_Support_Count,
+            Created_At
         """
 
         if payload.get("role") == "admin":
@@ -742,8 +873,11 @@ def track_report(complaint_id):
         cursor.execute("""
             SELECT Complaint_ID, City, Area_Locality, Issue,
                    Category, Responsible_Authority, Severity,
-                   Complaint_Status, Days_Open, Resolution_Verified,
-                   Priority_Score, User_ID
+                   Complaint_Status,
+                   DATEDIFF(NOW(), Created_At) AS Days_Open,
+                   Resolution_Verified, Priority_Score,
+                   Complaint_Letter, Citizen_Support_Count,
+                   Evidence, After_Evidence, User_ID
             FROM civic_complaints
             WHERE Complaint_ID = %s
         """, (complaint_id,))
@@ -827,6 +961,9 @@ def signup_page():
 @app.route("/<path:filename>", methods=["GET"])
 def site_files(filename):
 
+    if filename.split("/")[0] in (UPLOAD_FOLDER_NAME, "__pycache__"):
+        return jsonify({"success": False, "message": "Not found"}), 404
+
     if not filename.lower().endswith(ALLOWED_EXT):
         return jsonify({
             "success": False,
@@ -836,33 +973,57 @@ def site_files(filename):
     return send_from_directory(BASE_DIR, filename)
 
 
+@app.route("/api/ai-write", methods=["POST"])
+def ai_write():
+    data = get_input()
+    try:
+        result = generate_complaint_letter({
+            "name": data.get("name", ""),
+            "address": data.get("address", ""),
+            "email": data.get("email", ""),
+            "city": data.get("city", ""),
+            "area": data.get("area") or data.get("area_locality", ""),
+            "issue": data.get("issue") or data.get("description", ""),
+            "category": data.get("category", ""),
+            "authority": data.get("authority", ""),
+            "lat": data.get("latitude", ""),
+            "lng": data.get("longitude", ""),
+            "complaint_id": data.get("complaint_id", ""),
+            "language": data.get("language", "English"),
+            "has_photo": bool(data.get("has_photo"))
+        })
+        return jsonify({"success": True, "data": result})
+    except Exception as e:
+        print("AI Write Error:", e)
+        return jsonify({"success": False, "message": "AI service is unavailable right now. Please try again."}), 500
+
+@app.route("/api/analyze", methods=["POST"])
+def analyze_photo():
+    try:
+        if 'photo' not in request.files:
+            return jsonify({"success": False, "message": "No photo uploaded"}), 400
+        f = request.files['photo']
+        result = analyze_image(f.read(), f.mimetype)
+        return jsonify({"success": True, "data": result})
+    except Exception as e:
+        print("Analyze Error:", e)
+        return jsonify({"success": False, "message": "AI service is unavailable right now. Please try again."}), 500
+
 # ==========================================
 # RUN APPLICATION
 # ==========================================
 
+# Create tables, then add the AI and notification routes
+init_db()
+register_ai_routes(app, verify_token, get_db, detect_category, DEPARTMENTS)
+register_notify_routes(app, verify_token, get_db)
+register_extra_routes(app, verify_token, get_db, BASE_DIR)
+
 if __name__ == "__main__":
 
-    if SECRET_KEY == "CHANGE_THIS_SECRET":
-        print("WARNING: Change your JWT_SECRET in .env")
-
-    if not init_db():
-        print(
-            "Database unavailable. Check MySQL service "
-            "and your .env credentials."
-        )
-
-    URL = "http://127.0.0.1:5000/"
-
+    # Local testing only. On a host, gunicorn runs "civic:app" instead.
+    port = int(os.getenv("PORT", "5000"))
+    URL = f"http://127.0.0.1:{port}/"
     print("Opening ApnaCity:", URL)
-
-    threading.Timer(
-        1.2,
-        lambda: webbrowser.open(URL)
-    ).start()
-
-    app.run(
-        host="127.0.0.1",
-        port=5000,
-        debug=DEBUG,
-        use_reloader=False
-    )
+    threading.Timer(1.2, lambda: webbrowser.open(URL)).start()
+    app.run(host="127.0.0.1", port=port, debug=DEBUG, use_reloader=False)
