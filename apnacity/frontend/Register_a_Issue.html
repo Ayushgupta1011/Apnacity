@@ -34,12 +34,12 @@
         
         .logo {
             text-align: center;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
         }
         
         .logo img {
-            width: 50px;
-            height: 50px;
+            width: 55px;
+            height: 55px;
             object-fit: contain;
             display: block;
             margin: 0 auto;
@@ -55,7 +55,7 @@
             color: #666;
             margin-top: 5px;
         }
-        /* Card */
+        /* Main Card */
         
         .signup-card {
             background: white;
@@ -88,11 +88,12 @@
             color: #777;
             margin-bottom: 25px;
             font-size: 14px;
+            line-height: 1.6;
         }
         /* Form */
         
         .form-group {
-            margin-bottom: 18px;
+            margin-bottom: 20px;
         }
         
         .form-group label {
@@ -131,8 +132,9 @@
         }
         
         .input-box textarea {
-            min-height: 100px;
+            min-height: 110px;
             resize: vertical;
+            line-height: 1.5;
         }
         
         .input-box input:focus,
@@ -144,6 +146,32 @@
         .input-box input[readonly] {
             background: #f4f8f5;
             color: #555;
+        }
+        /* Photo Upload */
+        
+        .photo-upload {
+            border: 1px dashed #176b4a;
+            background: #f4f8f5;
+            border-radius: 10px;
+            padding: 18px;
+        }
+        
+        .photo-upload label {
+            display: block;
+            color: #176b4a;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .photo-upload input {
+            width: 100%;
+            font-size: 14px;
+        }
+        
+        .photo-help {
+            color: #777;
+            font-size: 12px;
+            margin-top: 8px;
         }
         /* Location */
         
@@ -171,6 +199,11 @@
             background: #d3ebdb;
         }
         
+        .location-btn:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+        
         .status-text {
             margin-top: 10px;
             font-size: 13px;
@@ -181,7 +214,7 @@
         .status-text.error {
             color: #c34242;
         }
-        /* Button */
+        /* Submit Button */
         
         .signup-btn {
             width: 100%;
@@ -207,7 +240,7 @@
             cursor: not-allowed;
             transform: none;
         }
-        /* Result box */
+        /* Result */
         
         .result {
             display: none;
@@ -218,10 +251,7 @@
             color: #183d2d;
             font-size: 14px;
             line-height: 1.8;
-        }
-        
-        .result strong {
-            color: #176b4a;
+            overflow-wrap: anywhere;
         }
         /* Links */
         
@@ -268,81 +298,125 @@
 
     <div class="container">
 
+        <!-- Logo -->
         <div class="logo">
-            <a href="index.html"><img src="img/logo.jpeg" alt="ApnaCity Logo"></a>
+            <a href="index.html">
+                <img src="img/logo.jpeg" alt="ApnaCity Logo">
+            </a>
+
             <h2>ApnaCity</h2>
             <p>Making Cities Better</p>
         </div>
 
+        <!-- Report Form -->
         <div class="signup-card">
 
             <h1>Register an Issue</h1>
+
             <p class="subtitle">
                 Tell us what's wrong in your area and we'll send it to the right department.
             </p>
 
-            <form id="reportForm">
-                <input type="file" id="photo" accept="image/*">
-                <p id="aiResult"></p>
+            <form id="reportForm" method="POST">
 
+                <!-- Photo Evidence -->
+                <div class="form-group">
+                    <div class="photo-upload">
+                        <label for="photo">
+                            <i class="fa-solid fa-camera"></i>
+                            Upload Issue Photo (Optional)
+                        </label>
+
+                        <input type="file" id="photo" name="photo" accept="image/*">
+
+                        <p class="photo-help">
+                            Upload a clear photo of the civic issue.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- City -->
                 <div class="form-group">
                     <label for="city">City</label>
+
                     <div class="input-box">
                         <i class="fa-solid fa-city"></i>
+
                         <input type="text" name="city" id="city" placeholder="Enter your city" required>
                     </div>
                 </div>
 
+                <!-- Area -->
                 <div class="form-group">
                     <label for="Area">Area</label>
+
                     <div class="input-box">
                         <i class="fa-solid fa-map-pin"></i>
+
                         <input type="text" name="Area" id="Area" placeholder="Enter your area or locality" required>
                     </div>
                 </div>
 
+                <!-- Issue -->
                 <div class="form-group">
-                    <label for="Issue">Issue</label>
+                    <label for="Issue">Describe Your Issue</label>
+
                     <div class="input-box textarea">
                         <i class="fa-solid fa-triangle-exclamation"></i>
+
                         <textarea name="Issue" id="Issue" placeholder="Describe the issue (e.g. pothole on main road, garbage not collected)" required></textarea>
                     </div>
                 </div>
 
+                <!-- GPS Location -->
                 <div class="form-group">
+
                     <label>Location</label>
 
                     <div class="coords">
+
                         <div class="input-box">
                             <i class="fa-solid fa-location-dot"></i>
+
                             <input type="text" id="latitude" name="latitude" placeholder="Latitude" readonly>
                         </div>
+
                         <div class="input-box">
                             <i class="fa-solid fa-location-dot"></i>
+
                             <input type="text" id="longitude" name="longitude" placeholder="Longitude" readonly>
                         </div>
+
                     </div>
 
-                    <button type="button" class="location-btn" onclick="getLocation()">
-                        <i class="fa-solid fa-crosshairs"></i> Use My Current Location
+                    <button type="button" class="location-btn" id="locationBtn" onclick="getLocation()">
+                        <i class="fa-solid fa-crosshairs"></i>
+                        Use My Current Location
                     </button>
 
                     <p id="locationStatus" class="status-text"></p>
+
                 </div>
 
+                <!-- Submit -->
                 <button type="submit" class="signup-btn" id="submitBtn">
-                    <i class="fa-solid fa-paper-plane"></i> Submit Report
+                    <i class="fa-solid fa-paper-plane"></i>
+                    Submit Report
                 </button>
 
                 <p id="submitStatus" class="status-text" style="text-align:center;"></p>
 
+                <!-- Submission Result -->
                 <div id="result" class="result"></div>
 
             </form>
 
+            <!-- Tracking Link -->
             <div class="login-link">
                 Already reported?
-                <a href="Track_report_status.html">Track your complaint</a>
+                <a href="Track_report_status.html">
+                    Track your complaint
+                </a>
             </div>
 
         </div>
@@ -354,35 +428,92 @@
 
     </div>
 
-    <!-- <script src="other.js"></script> -->
+    <!-- Existing Authentication -->
     <script src="auth.js"></script>
-    <!-- <script src="report.js"></script> -->
+
+    <!-- Existing Report Submission -->
+    <script src="report.js"></script>
+
+    <!-- GPS Function -->
     <script>
-        document.getElementById("photo").addEventListener("change", async(e) => {
-            const out = document.getElementById("aiResult");
-            out.textContent = "Analyzing photo...";
-            const fd = new FormData();
-            fd.append("image", e.target.files[0]);
-            try {
-                const r = await fetch("/api/analyze", {
-                    method: "POST",
-                    body: fd
-                });
-                const d = await r.json();
-                if (!r.ok) throw new Error(d.error);
-                if (!d.is_valid_issue) {
-                    out.textContent = "This photo doesn't look like a civic issue.";
-                    return;
-                }
-                out.textContent = `${d.category} (${d.severity}): ${d.description}`;
-                // Auto-fill your form fields here, e.g.:
-                // document.getElementById("category").value = d.category;
-                // document.getElementById("description").value = d.description;
-            } catch (err) {
-                out.textContent = err.message;
+        function getLocation() {
+
+            const status = document.getElementById("locationStatus");
+            const latitude = document.getElementById("latitude");
+            const longitude = document.getElementById("longitude");
+            const locationBtn = document.getElementById("locationBtn");
+
+            if (!navigator.geolocation) {
+                status.textContent =
+                    "Your browser does not support GPS location.";
+
+                status.className = "status-text error";
+                return;
             }
-        });
+
+            status.textContent = "Detecting your location...";
+            status.className = "status-text";
+
+            locationBtn.disabled = true;
+
+            navigator.geolocation.getCurrentPosition(
+
+                function(position) {
+
+                    latitude.value = position.coords.latitude;
+                    longitude.value = position.coords.longitude;
+
+                    status.textContent =
+                        "Location detected successfully! Accuracy: " +
+                        Math.round(position.coords.accuracy) +
+                        " metres.";
+
+                    status.className = "status-text";
+
+                    locationBtn.disabled = false;
+                },
+
+                function(error) {
+
+                    let message = "";
+
+                    switch (error.code) {
+
+                        case error.PERMISSION_DENIED:
+                            message =
+                                "Location permission denied. Allow location access in your browser.";
+                            break;
+
+                        case error.POSITION_UNAVAILABLE:
+                            message =
+                                "Location information is unavailable.";
+                            break;
+
+                        case error.TIMEOUT:
+                            message =
+                                "Location request timed out. Please try again.";
+                            break;
+
+                        default:
+                            message =
+                                "Unable to detect your location.";
+                    }
+
+                    status.textContent = message;
+                    status.className = "status-text error";
+
+                    locationBtn.disabled = false;
+                },
+
+                {
+                    enableHighAccuracy: true,
+                    timeout: 20000,
+                    maximumAge: 0
+                }
+            );
+        }
     </script>
+
 </body>
 
 </html>
