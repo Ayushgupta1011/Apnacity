@@ -1,76 +1,106 @@
-// report.js - ApnaCity complaint submission
-(function() {
+// =====================================================
+// APNACITY - COMPLETE REPORT SUBMISSION
+// =====================================================
+
+(function () {
     "use strict";
 
     const $ = (id) => document.getElementById(id);
+
+    const getValue = (id) => {
+        const element = $(id);
+        return element && element.value
+            ? element.value.trim()
+            : "";
+    };
 
     const ai = {
         category: "",
         severity: ""
     };
 
-    let force = false;
+    let submitting = false;
 
     const form = $("reportForm");
     const submitBtn = $("submitBtn");
+    const photoInput = $("photo");
 
     if (!form) {
-        console.error("ApnaCity: #reportForm was not found.");
+        console.error("ApnaCity: reportForm not found.");
         return;
     }
 
-    // ---------- Helpers ----------
+    // -------------------------------------------------
+    // API HELPERS
+    // -------------------------------------------------
 
-    async function readJson(response) {
+    async function apiRequest(url, options) {
+        const response = await fetch(url, Object.assign({
+            credentials: "same-origin"
+        }, options || {}));
+
+        const raw = await response.text();
+
+        let data;
+
         try {
-            return await response.json();
-        } catch {
-            return {
+            data = raw ? JSON.parse(raw) : {};
+        } catch (error) {
+            data = {
                 success: false,
-                message: `Server returned an invalid response (${response.status}).`
+                message: "Server returned an invalid response."
             };
-        }
-    }
-
-    function setStatus(element, message, isError = false) {
-        if (!element) return;
-
-        element.textContent = message;
-        element.className = "status-text" + (isError ? " error" : "");
-        element.style.display = "block";
-    }
-
-    function showApiError(response, data) {
-        if (response.status === 405) {
-            return "405 Method Not Allowed: Flask does not allow POST on /api/reports. Check the civic.py route.";
-        }
-
-        if (response.status === 404) {
-            return "404: /api/reports was not found. Check the Flask API URL.";
         }
 
         if (response.status === 401) {
             window.location.href = "login.html";
-            return "Please log in.";
+            throw new Error("Please log in again.");
         }
 
-        return data.message || `Request failed (${response.status}).`;
+        if (!response.ok) {
+            let message = data.message || "Request failed.";
+
+            if (response.status === 405) {
+                message = "405 Method Not Allowed. Check the Flask route and request method.";
+            } else if (response.status === 404) {
+                message = "404 API route not found. Check the Flask URL.";
+            } else if (response.status === 500) {
+                message = data.message || "Server error. Check the Flask terminal.";
+            }
+
+            throw new Error(message);
+        }
+
+        return data;
     }
 
-    // ---------- 1. Current location ----------
+    function setStatus(element, message, isError) {
+        if (!element) return;
 
-    window.getLocation = function() {
+        element.textContent = message;
+        element.className = "status-text" + (
+            isError ? " error" : ""
+        );
+
+        element.style.display = "block";
+    }
+
+    // -------------------------------------------------
+    // LOCATION
+    // -------------------------------------------------
+
+    window.getLocation = function () {
         const status = $("locationStatus");
 
         if (!navigator.geolocation) {
-            setStatus(status, "Your browser does not support location.", true);
+            setStatus(status, "Location is not supported.", true);
             return;
         }
 
-        setStatus(status, "Getting your location...");
+        setStatus(status, "Getting your location...", false);
 
         navigator.geolocation.getCurrentPosition(
-            (position) => {
+            function (position) {
                 if ($("latitude")) {
                     $("latitude").value =
                         position.coords.latitude.toFixed(6);
@@ -81,15 +111,16 @@
                         position.coords.longitude.toFixed(6);
                 }
 
-                setStatus(status, "Location captured successfully.");
+                setStatus(status, "Location captured successfully.", false);
             },
-            () => {
+            function () {
                 setStatus(
                     status,
-                    "Location unavailable. Please allow location permission.",
+                    "Location unavailable. Allow location permission.",
                     true
                 );
-            }, {
+            },
+            {
                 enableHighAccuracy: true,
                 timeout: 10000,
                 maximumAge: 0
@@ -97,13 +128,129 @@
         );
     };
 
-    // ---------- 2. Photo analysis using AI ----------
+    // -------------------------------------------------
+    // CREATE AI COMPLAINT PANEL
+    // -------------------------------------------------
 
-    const photoInput = $("photo");
+    function createAIPanel() {
+        if ($("genLetterBtn")) return;
+
+        if (!submitBtn || !submitBtn.parentNode) {
+            console.error("ApnaCity: Submit button not found.");
+            return;
+        }
+
+        const panel = document.createElement("div");
+
+        panel.id = "aiComplaintPanel";
+
+        panel.style.cssText =
+            "margin:15px 0;padding:16px;" +
+            "border:1px solid #176b4a;" +
+            "border-radius:10px;background:#f4f8f5;";
+
+        panel.innerHTML = `
+            <h3 style="margin:0 0 8px;">
+                Complaint written by AI
+            </h3>
+
+            <p style="font-size:13px;color:#555;">
+                Generate a formal complaint letter from your issue details.
+            </p>
+
+            <select id="letterLang"
+                style="padding:10px;border:1px solid #ccc;border-radius:8px;">
+                <option value="English">English</option>
+                <option value="Hindi">हिन्दी (Hindi)</option>
+            </select>
+
+            <button type="button" id="genLetterBtn"
+                class="location-btn"
+                style="width:auto;padding:10px 16px;margin:10px 0;">
+                Write complaint with AI
+            </button>
+
+            <p id="letterStatus" class="status-text"></p>
+
+            <textarea id="letterText"
+                placeholder="Your AI-generated complaint will appear here..."
+                style="
+                    display:none;
+                    width:100%;
+                    min-height:280px;
+                    padding:12px;
+                    border:1px solid #ccc;
+                    border-radius:8px;
+                    box-sizing:border-box;
+                    font-size:14px;
+                    line-height:1.6;
+                "></textarea>
+
+            <p id="letterHint"
+                style="display:none;font-size:12px;color:#666;">
+                Review and edit the letter before submitting.
+            </p>
+        `;
+
+        submitBtn.parentNode.insertBefore(panel, submitBtn);
+    }
+
+    createAIPanel();
+
+    // Optional phone number
+    function addPhoneField() {
+        if ($("phone") || !submitBtn) return;
+
+        const wrapper = document.createElement("div");
+
+        wrapper.className = "form-group";
+
+        wrapper.innerHTML = `
+            <label for="phone">Mobile number (optional)</label>
+            <input id="phone" type="tel"
+                maxlength="15"
+                inputmode="numeric"
+                placeholder="Mobile number">
+        `;
+
+        submitBtn.parentNode.insertBefore(
+            wrapper,
+            $("aiComplaintPanel") || submitBtn
+        );
+    }
+
+    addPhoneField();
+
+    // NGO permission checkbox
+    function addNGOField() {
+        if ($("shareNgo") || !submitBtn) return;
+
+        const wrapper = document.createElement("div");
+
+        wrapper.style.margin = "15px 0";
+
+        wrapper.innerHTML = `
+            <label style="display:flex;gap:8px;align-items:center;">
+                <input type="checkbox" id="shareNgo" checked>
+                <span>
+                    Allow verified NGOs to view this complaint without
+                    your name or contact details.
+                </span>
+            </label>
+        `;
+
+        submitBtn.parentNode.insertBefore(wrapper, submitBtn);
+    }
+
+    addNGOField();
+
+    // -------------------------------------------------
+    // PHOTO ANALYSIS
+    // -------------------------------------------------
 
     if (photoInput) {
-        photoInput.addEventListener("change", async function(event) {
-            const file = event.target.files[0];
+        photoInput.addEventListener("change", async function () {
+            const file = photoInput.files[0];
 
             if (!file) return;
 
@@ -116,33 +263,26 @@
                 photoInput.parentNode.appendChild(output);
             }
 
-            if (!file.type.startsWith("image/")) {
-                setStatus(output, "Please select a valid image.", true);
+            if (!file.type || file.type.indexOf("image/") !== 0) {
+                setStatus(output, "Select a valid image.", true);
                 return;
             }
 
-            setStatus(output, "Analyzing your photo...");
+            setStatus(output, "Analyzing your photo...", false);
 
             const formData = new FormData();
             formData.append("image", file);
 
             try {
-                const response = await fetch("/api/analyze", {
+                const data = await apiRequest("/api/analyze", {
                     method: "POST",
-                    credentials: "same-origin",
                     body: formData
                 });
-
-                const data = await readJson(response);
-
-                if (!response.ok) {
-                    throw new Error(showApiError(response, data));
-                }
 
                 if (!data.is_valid_issue) {
                     setStatus(
                         output,
-                        "This photo does not appear to show a civic issue.",
+                        "This image does not appear to show a civic issue.",
                         true
                     );
                     return;
@@ -151,163 +291,83 @@
                 ai.category = data.category || "";
                 ai.severity = data.severity || "";
 
-                setStatus(
-                    output,
-                    `${data.category || "Issue"} (${data.severity || "Unspecified"}): ${data.description || "Photo analyzed."}`
-                );
-
                 if ($("Issue") && !$("Issue").value.trim()) {
                     $("Issue").value = data.description || "";
                 }
 
-                if ($("category") && data.category) {
-                    $("category").value = data.category;
-                }
+                setStatus(
+                    output,
+                    (data.category || "Issue") +
+                    " - " +
+                    (data.severity || "Medium") +
+                    ": " +
+                    (data.description || "Photo analyzed."),
+                    false
+                );
 
             } catch (error) {
-                console.error("Photo analysis error:", error);
+                console.error("Photo analysis:", error);
                 setStatus(output, error.message, true);
             }
         });
     }
 
-    // ---------- 3. Create AI complaint-letter panel ----------
-
-    const anchor = $("submitBtn");
-
-    if (anchor && anchor.parentNode && !$("genLetterBtn")) {
-        const panel = document.createElement("div");
-
-        panel.style.cssText =
-            "margin:6px 0 18px;padding:16px;border:1px dashed #176b4a;" +
-            "border-radius:10px;background:#f4f8f5;";
-
-        panel.innerHTML = `
-            <label style="display:block;font-weight:600;margin-bottom:6px;">
-                Complaint written by AI
-            </label>
-
-            <p style="font-size:13px;color:#666;">
-                AI will turn your issue description into a formal complaint.
-            </p>
-
-            <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                <select id="letterLang"
-                    style="padding:10px;border:1px solid #ddd;border-radius:8px;">
-                    <option value="English">English</option>
-                    <option value="Hindi">हिन्दी (Hindi)</option>
-                </select>
-
-                <button type="button" id="genLetterBtn"
-                    class="location-btn"
-                    style="width:auto;margin:0;padding:10px 16px;">
-                    Write complaint with AI
-                </button>
-            </div>
-
-            <p id="letterStatus" class="status-text"></p>
-
-            <textarea id="letterText"
-                style="display:none;width:100%;min-height:300px;padding:12px;
-                border:1px solid #ddd;border-radius:8px;font-size:14px;
-                line-height:1.6;"></textarea>
-
-            <p id="letterHint"
-                style="display:none;font-size:12px;color:#888;">
-                Review and edit the AI-generated complaint before submitting.
-            </p>
-        `;
-
-        anchor.parentNode.insertBefore(panel, anchor);
-
-        // Optional phone number field
-        if (!$("phone")) {
-            const phoneGroup = document.createElement("div");
-            phoneGroup.className = "form-group";
-
-            phoneGroup.innerHTML = `
-                <label for="phone">Mobile number (optional)</label>
-                <input type="tel" id="phone"
-                    placeholder="10-digit mobile number"
-                    inputmode="numeric" maxlength="15"
-                    autocomplete="tel">
-                <p style="font-size:12px;color:#888;">
-                    SMS updates may be sent if SMS is enabled.
-                </p>
-            `;
-
-            anchor.parentNode.insertBefore(phoneGroup, panel);
-        }
-
-        // NGO sharing permission
-        if (!$("shareNgo")) {
-            const shareBox = document.createElement("div");
-
-            shareBox.style.cssText =
-                "margin:0 0 18px;font-size:13px;color:#555;";
-
-            shareBox.innerHTML = `
-                <label style="display:flex;gap:8px;align-items:flex-start;">
-                    <input type="checkbox" id="shareNgo" checked>
-                    <span>
-                        Allow verified NGOs to view this complaint without
-                        your name or contact details.
-                    </span>
-                </label>
-            `;
-
-            anchor.parentNode.insertBefore(shareBox, panel);
-        }
-    }
-
-    // ---------- 4. Generate AI complaint letter ----------
+    // -------------------------------------------------
+    // AI COMPLAINT LETTER
+    // -------------------------------------------------
 
     async function generateLetter() {
-        const issue = $("Issue") ? .value.trim() || "";
-        const status = $("letterStatus");
+        const issue = getValue("Issue");
         const button = $("genLetterBtn");
+        const status = $("letterStatus");
 
-        if (issue.length < 10) {
+        if (!issue || issue.length < 10) {
             setStatus(
                 status,
-                "Please describe the issue in at least one sentence.",
+                "Please describe the issue using at least 10 characters.",
                 true
             );
             return false;
         }
 
-        if (!button) return false;
+        if (!button) {
+            setStatus(status, "AI button not found.", true);
+            return false;
+        }
 
         button.disabled = true;
-        setStatus(status, "AI is writing your complaint...");
+
+        setStatus(
+            status,
+            "AI is writing your formal complaint...",
+            false
+        );
 
         try {
-            const response = await fetch("/api/generate-complaint", {
+            const data = await apiRequest("/api/generate-complaint", {
                 method: "POST",
-                credentials: "same-origin",
                 headers: {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
                     issue: issue,
-                    city: $("city") ? .value || "",
-                    area: $("Area") ? .value || "",
-                    latitude: $("latitude") ? .value || "",
-                    longitude: $("longitude") ? .value || "",
-                    language: $("letterLang") ? .value || "English",
-                    has_photo: !!photoInput ? .files ? .length
+                    city: getValue("city"),
+                    area: getValue("Area"),
+                    latitude: getValue("latitude"),
+                    longitude: getValue("longitude"),
+                    language: getValue("letterLang") || "English",
+                    has_photo: !!(
+                        photoInput &&
+                        photoInput.files &&
+                        photoInput.files.length
+                    )
                 })
             });
 
-            const data = await readJson(response);
-
-            if (response.status === 401) {
-                window.location.href = "login.html";
-                return false;
-            }
-
-            if (!response.ok || !data.success || !data.letter) {
-                throw new Error(showApiError(response, data));
+            if (!data.success || !data.letter) {
+                throw new Error(
+                    data.message || "AI returned an empty complaint."
+                );
             }
 
             $("letterText").value = data.letter;
@@ -319,15 +379,14 @@
 
             setStatus(
                 status,
-                data.ai_used === false ?
-                "A standard complaint draft was prepared. Review it before submitting." :
-                "Complaint ready. Review it before submitting."
+                "Your AI complaint letter is ready. Review it before submitting.",
+                false
             );
 
             return true;
 
         } catch (error) {
-            console.error("AI complaint error:", error);
+            console.error("AI letter error:", error);
             setStatus(status, error.message, true);
             return false;
 
@@ -336,237 +395,192 @@
         }
     }
 
-    $("genLetterBtn") ? .addEventListener("click", generateLetter);
+    if ($("genLetterBtn")) {
+        $("genLetterBtn").addEventListener("click", generateLetter);
+    }
 
-    // ---------- 5. Duplicate complaint display ----------
+    // -------------------------------------------------
+    // COMPLAINT SUCCESS DISPLAY
+    // -------------------------------------------------
 
-    function showDuplicate(data, status) {
+    function showSuccess(data, photoWarning) {
         const box = $("result");
 
-        if (!box) return;
+        if (!box) {
+            alert("Complaint submitted. ID: " + data.complaint_id);
+            return;
+        }
 
         box.replaceChildren();
         box.style.display = "block";
 
-        const message = document.createElement("p");
-        message.textContent =
-            "A similar complaint was already reported nearby. " +
-            "You can support the existing complaint or submit yours anyway.";
+        const heading = document.createElement("h3");
+        heading.textContent = "Report submitted successfully!";
+        box.appendChild(heading);
 
-        box.appendChild(message);
+        const analysis = data.analysis || {};
 
-        const supportButton = document.createElement("button");
-        supportButton.type = "button";
-        supportButton.textContent = "Support existing complaint";
-        supportButton.className = "location-btn";
+        const details = [
+            "Complaint ID: " + (data.complaint_id || ""),
+            "Category: " + (analysis.category || ai.category || "General"),
+            "Responsible authority: " +
+                (analysis.responsible_authority || "Municipal Corporation"),
+            "Priority: " + (analysis.severity || ai.severity || "Medium")
+        ];
 
-        supportButton.addEventListener("click", async() => {
-            try {
-                const response = await fetch(
-                    "/api/reports/" +
-                    encodeURIComponent(data.existing_id) +
-                    "/support", {
-                        method: "POST",
-                        credentials: "same-origin"
-                    }
-                );
-
-                const result = await readJson(response);
-
-                if (!response.ok) {
-                    throw new Error(showApiError(response, result));
-                }
-
-                box.textContent = result.message ||
-                    "You supported the existing complaint.";
-
-            } catch (error) {
-                box.textContent = error.message;
-            }
+        details.forEach(function (item) {
+            const p = document.createElement("p");
+            p.textContent = item;
+            box.appendChild(p);
         });
 
-        const anywayButton = document.createElement("button");
-        anywayButton.type = "button";
-        anywayButton.textContent = "Submit my complaint anyway";
-        anywayButton.className = "location-btn";
+        const link = document.createElement("a");
+        link.href = "Track_report_status.html";
+        link.textContent = "Track your complaint";
 
-        anywayButton.addEventListener("click", () => {
-            force = true;
-            form.requestSubmit();
+        box.appendChild(link);
+
+        if (photoWarning) {
+            const warning = document.createElement("p");
+            warning.textContent = photoWarning;
+            box.appendChild(warning);
+        }
+
+        box.scrollIntoView({
+            behavior: "smooth"
         });
-
-        box.append(supportButton, anywayButton);
-        status.textContent = "";
     }
 
-    // ---------- 6. Submit complaint ----------
+    // -------------------------------------------------
+    // SUBMIT REPORT
+    // -------------------------------------------------
 
-    if (!form.dataset.reportHandlerAttached) {
-        form.dataset.reportHandlerAttached = "true";
+    form.addEventListener("submit", async function (event) {
+        event.preventDefault();
 
-        form.addEventListener("submit", async function(event) {
-            event.preventDefault();
+        if (submitting) return;
 
-            const status = $("submitStatus") || document.createElement("p");
-            const button = $("submitBtn") || event.submitter;
+        const status = $("submitStatus");
+        const button = submitBtn;
+        const issue = getValue("Issue");
 
-            if (!status.parentNode) {
-                form.appendChild(status);
-            }
+        if (!issue) {
+            setStatus(status, "Please enter your issue description.", true);
+            return;
+        }
 
-            const issue = $("Issue") ? .value.trim() || "";
+        if (issue.length < 5) {
+            setStatus(status, "Please provide more issue details.", true);
+            return;
+        }
 
-            if (!issue) {
-                setStatus(status, "Please describe your issue.", true);
-                return;
-            }
+        submitting = true;
 
-            // Generate the AI letter when the user has not generated one.
+        if (button) button.disabled = true;
+
+        setStatus(status, "Preparing your complaint...", false);
+
+        try {
+            // Try to generate an AI letter if one is not already present.
             if (
                 $("letterText") &&
                 !$("letterText").value.trim() &&
                 issue.length >= 10
             ) {
-                await generateLetter();
+                const generated = await generateLetter();
+
+                if (!generated) {
+                    setStatus(
+                        status,
+                        "AI letter generation failed. You can try again or submit without the letter.",
+                        true
+                    );
+
+                    const proceed = window.confirm(
+                        "The AI complaint letter could not be generated. Submit the report without the AI letter?"
+                    );
+
+                    if (!proceed) return;
+                }
             }
 
-            if (button) button.disabled = true;
+            setStatus(status, "Submitting your report...", false);
 
-            setStatus(status, "Submitting your complaint...");
+            const payload = {
+                city: getValue("city"),
+                Area: getValue("Area"),
+                issue: issue,
+                latitude: getValue("latitude"),
+                longitude: getValue("longitude"),
+                category: ai.category,
+                severity: ai.severity,
+                letter: getValue("letterText"),
+                phone: getValue("phone"),
+                share_with_ngos: !!(
+                    $("shareNgo") && $("shareNgo").checked
+                )
+            };
 
-            try {
-                const payload = {
-                    city: $("city") ? .value || "",
-                    Area: $("Area") ? .value || "",
-                    issue: issue,
-                    latitude: $("latitude") ? .value || "",
-                    longitude: $("longitude") ? .value || "",
-                    category: ai.category,
-                    severity: ai.severity,
-                    letter: $("letterText") ? .value || "",
-                    phone: $("phone") ? .value || "",
-                    force: force,
-                    share_with_ngos: $("shareNgo") ? .checked ? ? false
-                };
+            const data = await apiRequest("/api/reports", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            });
 
-                const response = await fetch("/api/reports", {
-                    method: "POST",
-                    credentials: "same-origin",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify(payload)
-                });
-
-                const data = await readJson(response);
-
-                if (response.status === 401) {
-                    window.location.href = "login.html";
-                    return;
-                }
-
-                if (response.status === 409 && data.duplicate) {
-                    showDuplicate(data, status);
-                    return;
-                }
-
-                if (!response.ok || !data.success) {
-                    throw new Error(showApiError(response, data));
-                }
-
-                // Upload the photo after the complaint is saved.
-                let photoWarning = "";
-
-                const photoFile = photoInput ? .files ? .[0];
-
-                if (photoFile && data.complaint_id) {
-                    const photoData = new FormData();
-                    photoData.append("image", photoFile);
-                    photoData.append("kind", "before");
-
-                    try {
-                        const photoResponse = await fetch(
-                            "/api/reports/" +
-                            encodeURIComponent(data.complaint_id) +
-                            "/photo", {
-                                method: "POST",
-                                credentials: "same-origin",
-                                body: photoData
-                            }
-                        );
-
-                        if (!photoResponse.ok) {
-                            photoWarning =
-                                " Your complaint was saved, but its photo could not be uploaded.";
-                        }
-                    } catch {
-                        photoWarning =
-                            " Your complaint was saved, but its photo could not be uploaded.";
-                    }
-                }
-
-                // Display successful submission.
-                const box = $("result");
-
-                if (box) {
-                    box.replaceChildren();
-                    box.style.display = "block";
-
-                    const analysis = data.analysis || {};
-
-                    const heading = document.createElement("h3");
-                    heading.textContent = "Report submitted successfully!";
-                    box.appendChild(heading);
-
-                    const details = [
-                        "Complaint ID: " +
-                        (data.complaint_id || "Not provided"),
-                        "Category: " +
-                        (analysis.category || ai.category || "General"),
-                        "Sent to: " +
-                        (analysis.responsible_authority || "Relevant authority"),
-                        "Priority: " +
-                        (analysis.severity || ai.severity || "Not specified")
-                    ];
-
-                    details.forEach((item) => {
-                        const paragraph = document.createElement("p");
-                        paragraph.textContent = item;
-                        box.appendChild(paragraph);
-                    });
-
-                    const trackingLink = document.createElement("a");
-                    trackingLink.href = "Track_report_status.html";
-                    trackingLink.textContent = "Track your complaint";
-                    box.appendChild(trackingLink);
-
-                    if (photoWarning) {
-                        const warning = document.createElement("p");
-                        warning.textContent = photoWarning;
-                        box.appendChild(warning);
-                    }
-
-                    box.scrollIntoView({ behavior: "smooth" });
-                }
-
-                status.textContent = "";
-
-            } catch (error) {
-                console.error("Complaint submission error:", error);
-
-                setStatus(
-                    status,
-                    error instanceof TypeError ?
-                    "Could not connect to the server. Check your Flask server and website URL." :
-                    error.message,
-                    true
+            if (!data.success || !data.complaint_id) {
+                throw new Error(
+                    data.message || "The report was not saved."
                 );
-
-            } finally {
-                if (button) button.disabled = false;
-                force = false;
             }
-        });
-    }
+
+            // Upload complaint photo after report creation.
+            let photoWarning = "";
+
+            if (
+                photoInput &&
+                photoInput.files &&
+                photoInput.files.length > 0
+            ) {
+                const photoData = new FormData();
+
+                photoData.append("image", photoInput.files[0]);
+                photoData.append("kind", "before");
+
+                try {
+                    await apiRequest(
+                        "/api/reports/" +
+                        encodeURIComponent(data.complaint_id) +
+                        "/photo",
+                        {
+                            method: "POST",
+                            body: photoData
+                        }
+                    );
+                } catch (error) {
+                    photoWarning =
+                        "Complaint saved, but photo upload failed: " +
+                        error.message;
+                }
+            }
+
+            setStatus(status, "", false);
+
+            showSuccess(data, photoWarning);
+
+        } catch (error) {
+            console.error("Report submission error:", error);
+
+            setStatus(status, error.message, true);
+
+        } finally {
+            submitting = false;
+
+            if (button) button.disabled = false;
+        }
+    });
+
+    console.log("ApnaCity report.js loaded successfully.");
 
 })();
