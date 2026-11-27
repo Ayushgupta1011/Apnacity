@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory, redirect
+from flask import Flask, request, jsonify, send_from_directory, redirect,render_template
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
@@ -15,7 +15,27 @@ from mysql.connector import pooling
 from ai_routes import register_ai_routes
 from notify import register_notify_routes, new_complaint_id, notify_user, normalize_phone
 from extras import register_extra_routes, UPLOAD_FOLDER_NAME
-from gemini
+import os
+import re
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent
+
+UPLOAD_ROOT = BASE_DIR / "uploads"
+COMPLAINT_UPLOAD_DIR = UPLOAD_ROOT / "complaints"
+
+def create_storage_structure():
+    """Create the main ApnaCity photo storage folders."""
+    COMPLAINT_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+# Run automatically when Flask starts
+create_storage_structure()
+
+
+try:
+    from ngo_routes import register_ngo_routes   # optional NGO feature
+except ImportError:
+    register_ngo_routes = None
 # ==========================================
 # CONFIGURATION
 # ==========================================
@@ -76,6 +96,9 @@ def _pool_config():
     ssl_ca = os.getenv("DB_SSL_CA")          # needed by some cloud databases
     if ssl_ca:
         config["ssl_ca"] = ssl_ca
+    # Read every result right away. Without this, a query that returns a row
+    # can crash later with "Unread result found" when the cursor is closed.
+    config["buffered"] = True
     return config
 
 
@@ -155,14 +178,52 @@ def init_db():
             )
         """)
 
-        cursor.execute(
-            "SHOW COLUMNS FROM civic_complaints LIKE 'User_ID'"
-        )
+        # An older database may be missing some columns (CREATE TABLE IF NOT EXISTS
+        # does not change a table that already exists). Add whatever is absent.
+        needed_columns = {
+            "users": {
+                "role": "VARCHAR(20) NOT NULL DEFAULT 'citizen'",
+                "full_name": "VARCHAR(150)",
+                "street": "VARCHAR(255)",
+                "postal_code": "VARCHAR(20)",
+                "city": "VARCHAR(100)",
+                "created_at": "TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
+            },
+            "civic_complaints": {
+                "City": "VARCHAR(100)",
+                "Area_Locality": "VARCHAR(150)",
+                "Zone": "VARCHAR(100)",
+                "Latitude": "DECIMAL(10,6)",
+                "Longitude": "DECIMAL(10,6)",
+                "Issue": "TEXT",
+                "Category": "VARCHAR(100)",
+                "Responsible_Authority": "VARCHAR(150)",
+                "Severity": "VARCHAR(20)",
+                "AI_Confidence": "DECIMAL(4,2)",
+                "Citizen_Support_Count": "INT DEFAULT 0",
+                "NGO_Involved": "VARCHAR(5)",
+                "Citizen_Group_Active": "VARCHAR(5)",
+                "Complaint_Status": "VARCHAR(30)",
+                "Days_Open": "INT DEFAULT 0",
+                "AI_Auto_Routed": "VARCHAR(5)",
+                "Evidence": "VARCHAR(255)",
+                "Resolution_Verified": "VARCHAR(5)",
+                "Priority_Score": "INT",
+                "User_ID": "INT NULL",
+                "Created_At": "TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
+            },
+        }
 
-        if not cursor.fetchone():
-            cursor.execute(
-                "ALTER TABLE civic_complaints ADD COLUMN User_ID INT NULL"
-            )
+        for table, columns in needed_columns.items():
+            for column, definition in columns.items():
+                cursor.execute(
+                    f"SHOW COLUMNS FROM `{table}` LIKE %s", (column,)
+                )
+                if not cursor.fetchall():
+                    cursor.execute(
+                        f"ALTER TABLE `{table}` ADD COLUMN `{column}` {definition}"
+                    )
+                    print(f"Added missing column {table}.{column}")
 
         conn.commit()
         print("Database and tables are ready!")
@@ -745,6 +806,17 @@ def create_report():
         cursor.execute(query, values)
         conn.commit()
 
+        # Citizen can opt out of sharing this complaint with NGOs (only if NGO feature is installed)
+        if str(data.get("share_with_ngos", "true")).lower() in ("false", "0", "no"):
+            try:
+                cursor.execute(
+                    "UPDATE civic_complaints SET NGO_Share = 'No' WHERE Complaint_ID = %s",
+                    (complaint_id,)
+                )
+                conn.commit()
+            except Error as e:
+                print("NGO opt-out skipped:", e)
+
         notify_user(
             payload["user_id"],
             complaint_id,
@@ -763,6 +835,18 @@ def create_report():
     except Error as e:
         conn.rollback()
         print("Report Submission Error:", e)
+
+        return jsonify({
+            "success": False,
+            "message": "Unable to submit report"
+        }), 500
+
+    except Exception as e:
+        try:
+            conn.rollback()
+        except Exception:
+            pass
+        print("Report Submission Error (unexpected):", repr(e))
 
         return jsonify({
             "success": False,
@@ -973,42 +1057,6 @@ def site_files(filename):
     return send_from_directory(BASE_DIR, filename)
 
 
-@app.route("/api/ai-write", methods=["POST"])
-def ai_write():
-    data = get_input()
-    try:
-        result = generate_complaint_letter({
-            "name": data.get("name", ""),
-            "address": data.get("address", ""),
-            "email": data.get("email", ""),
-            "city": data.get("city", ""),
-            "area": data.get("area") or data.get("area_locality", ""),
-            "issue": data.get("issue") or data.get("description", ""),
-            "category": data.get("category", ""),
-            "authority": data.get("authority", ""),
-            "lat": data.get("latitude", ""),
-            "lng": data.get("longitude", ""),
-            "complaint_id": data.get("complaint_id", ""),
-            "language": data.get("language", "English"),
-            "has_photo": bool(data.get("has_photo"))
-        })
-        return jsonify({"success": True, "data": result})
-    except Exception as e:
-        print("AI Write Error:", e)
-        return jsonify({"success": False, "message": "AI service is unavailable right now. Please try again."}), 500
-
-@app.route("/api/analyze", methods=["POST"])
-def analyze_photo():
-    try:
-        if 'photo' not in request.files:
-            return jsonify({"success": False, "message": "No photo uploaded"}), 400
-        f = request.files['photo']
-        result = analyze_image(f.read(), f.mimetype)
-        return jsonify({"success": True, "data": result})
-    except Exception as e:
-        print("Analyze Error:", e)
-        return jsonify({"success": False, "message": "AI service is unavailable right now. Please try again."}), 500
-
 # ==========================================
 # RUN APPLICATION
 # ==========================================
@@ -1018,6 +1066,8 @@ init_db()
 register_ai_routes(app, verify_token, get_db, detect_category, DEPARTMENTS)
 register_notify_routes(app, verify_token, get_db)
 register_extra_routes(app, verify_token, get_db, BASE_DIR)
+if register_ngo_routes:
+    register_ngo_routes(app, verify_token, get_db)
 
 if __name__ == "__main__":
 
