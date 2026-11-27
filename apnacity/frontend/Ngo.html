@@ -4,14 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Discover NGOs and organizations working to improve our cities.">
-    <title>Apna City | NGO Directory</title>
+    <title>ApnaCity | NGOs in Action</title>
+    <link rel="icon" href="img/logo.jpeg">
 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
     <style>
         * {
@@ -21,20 +20,25 @@
         }
         
         body {
-            font-family: 'Poppins', sans-serif;
-            background: #f8fafc;
+            font-family: 'Poppins', Arial, sans-serif;
+            background: #f4f8f5;
             color: #183d2d;
+            line-height: 1.6;
+        }
+        
+        [hidden] {
+            display: none !important;
         }
         /* NAVIGATION */
         
         .main-header {
-            background: white;
+            background: #fff;
             min-height: 75px;
             padding: 14px 7%;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, .06);
             position: sticky;
             top: 0;
             z-index: 1000;
@@ -54,7 +58,8 @@
         #navbar {
             display: flex;
             align-items: center;
-            gap: 25px;
+            gap: 24px;
+            list-style: none;
         }
         
         #navbar a {
@@ -63,22 +68,11 @@
             font-size: 13px;
             font-weight: 500;
             position: relative;
-            transition: 0.3s;
         }
         
         #navbar a:hover,
         #navbar a.active {
             color: #088178;
-        }
-        
-        #navbar a.active::after {
-            content: "";
-            position: absolute;
-            width: 100%;
-            height: 2px;
-            background: #088178;
-            bottom: -8px;
-            left: 0;
         }
         
         .menu-toggle {
@@ -95,313 +89,377 @@
         
         .hero {
             background: linear-gradient(120deg, #176b4a, #088178);
-            padding: 65px 7%;
-            color: white;
+            color: #fff;
             text-align: center;
-        }
-        
-        .hero-icon {
-            font-size: 42px;
-            margin-bottom: 18px;
+            padding: 60px 7% 50px;
         }
         
         .hero h1 {
-            font-size: 36px;
-            margin-bottom: 15px;
+            font-size: 34px;
+            margin-bottom: 12px;
         }
         
         .hero p {
-            max-width: 680px;
-            margin: auto;
-            font-size: 14px;
-            line-height: 1.8;
-            opacity: 0.95;
+            max-width: 720px;
+            margin: 0 auto 26px;
+            opacity: .95;
         }
-        /* MAIN */
-        
-        .container {
-            max-width: 1200px;
-            margin: auto;
-            padding: 50px 20px;
-        }
-        
-        .section-title {
-            text-align: center;
-            margin-bottom: 35px;
-        }
-        
-        .section-title h2 {
-            font-size: 28px;
-            margin-bottom: 8px;
-        }
-        
-        .section-title p {
-            color: #66756c;
-            font-size: 14px;
-        }
-        /* STATISTICS */
         
         .stats {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 18px;
-            margin-bottom: 40px;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 14px;
+            max-width: 780px;
+            margin: 0 auto 26px;
         }
         
-        .stat-card {
-            background: white;
-            padding: 22px;
+        .stat {
+            background: rgba(255, 255, 255, .15);
             border-radius: 12px;
-            border: 1px solid #e2ece5;
-            display: flex;
-            align-items: center;
-            gap: 15px;
+            padding: 14px 10px;
         }
         
-        .stat-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            background: #e4f3e9;
-            color: #176b4a;
+        .stat strong {
+            display: block;
+            font-size: 28px;
+        }
+        
+        .stat span {
+            font-size: 12px;
+            opacity: .9;
+        }
+        
+        .hero-actions {
             display: flex;
-            align-items: center;
+            gap: 12px;
             justify-content: center;
-            font-size: 20px;
-        }
-        
-        .stat-card h3 {
-            font-size: 22px;
-        }
-        
-        .stat-card p {
-            font-size: 12px;
-            color: #66756c;
-        }
-        /* ORGANIZATION CARDS */
-        
-        .organization-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 22px;
-        }
-        
-        .org-card {
-            background: white;
-            border: 1px solid #e2ece5;
-            border-radius: 15px;
-            padding: 24px;
-            transition: 0.3s;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .org-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(24, 61, 45, 0.09);
-        }
-        
-        .org-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 18px;
-        }
-        
-        .org-icon {
-            width: 55px;
-            height: 55px;
-            background: #e4f3e9;
-            color: #176b4a;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 13px;
-            font-size: 24px;
-        }
-        
-        .verified {
-            color: #176b4a;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        
-        .org-card h3 {
-            font-size: 18px;
-            margin-bottom: 10px;
-        }
-        
-        .category {
-            display: inline-block;
-            align-self: flex-start;
-            background: #e4f3e9;
-            color: #176b4a;
-            padding: 5px 11px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            margin-bottom: 13px;
-        }
-        
-        .org-description {
-            font-size: 13px;
-            color: #66756c;
-            line-height: 1.8;
-            margin-bottom: 18px;
-            flex: 1;
-        }
-        
-        .org-info {
-            border-top: 1px solid #edf1ed;
-            padding-top: 14px;
-        }
-        
-        .org-info p {
-            font-size: 12px;
-            color: #66756c;
-            margin-bottom: 8px;
-        }
-        
-        .org-info i {
-            width: 20px;
-            color: #088178;
-        }
-        
-        .org-actions {
-            margin-top: 18px;
+            flex-wrap: wrap;
         }
         
         .btn {
-            display: block;
-            width: 100%;
-            text-align: center;
-            text-decoration: none;
-            padding: 11px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 600;
-            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
             border: none;
+            border-radius: 8px;
+            padding: 10px 18px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
             cursor: pointer;
+            transition: .2s;
+            text-decoration: none;
         }
         
         .btn-primary {
             background: #176b4a;
-            color: white;
+            color: #fff;
         }
         
         .btn-primary:hover {
-            background: #088178;
-        }
-        /* FOOTER */
-        
-        .apna-footer {
-            background: #183d2d;
-            color: white;
-            padding: 50px 7% 20px;
-            margin-top: 40px;
+            background: #104d35;
         }
         
-        .footer-container {
-            max-width: 1200px;
-            margin: auto;
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr;
-            gap: 40px;
-            padding-bottom: 35px;
+        .btn-light {
+            background: #fff;
+            color: #176b4a;
         }
         
-        .footer-logo {
-            color: white;
-            font-size: 25px;
-            font-weight: 700;
-            text-decoration: none;
-            display: inline-block;
-            margin-bottom: 15px;
+        .btn-light:hover {
+            background: #e4f3e9;
         }
         
-        .footer-logo span {
-            color: #56c69a;
+        .btn-outline {
+            background: #fff;
+            color: #176b4a;
+            border: 1px solid #176b4a;
         }
         
-        .footer-about p {
+        .btn-outline:hover {
+            background: #e4f3e9;
+        }
+        
+        .btn-danger {
+            background: #fff;
+            color: #c34242;
+            border: 1px solid #c34242;
+        }
+        
+        .btn-sm {
+            padding: 6px 12px;
             font-size: 13px;
-            line-height: 1.9;
-            color: #c5d8cc;
-            max-width: 390px;
         }
         
-        .footer-column h3 {
-            font-size: 15px;
-            margin-bottom: 18px;
-            color: white;
+        .btn:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+        }
+        /* LAYOUT */
+        
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 30px 20px 50px;
         }
         
-        .footer-column a {
-            display: block;
-            color: #c5d8cc;
-            text-decoration: none;
-            font-size: 13px;
-            margin-bottom: 12px;
-            transition: 0.3s;
-        }
-        
-        .footer-column a:hover {
-            color: #56c69a;
-            padding-left: 4px;
-        }
-        
-        .footer-social {
+        .tabs {
             display: flex;
-            gap: 12px;
-            margin-top: 18px;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
         }
         
-        .footer-social a {
-            width: 36px;
-            height: 36px;
+        .tabs button {
+            background: #fff;
+            border: 1px solid #d5e5db;
+            color: #183d2d;
+            padding: 9px 18px;
+            border-radius: 30px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        .tabs button.active {
+            background: #176b4a;
+            color: #fff;
+            border-color: #176b4a;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+            gap: 18px;
+        }
+        
+        .card {
+            background: #fff;
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, .07);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .card h3 {
+            font-size: 17px;
+            color: #176b4a;
+        }
+        
+        .card p {
+            font-size: 14px;
+            color: #444;
+        }
+        
+        .meta {
+            font-size: 13px;
+            color: #666;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 14px;
+        }
+        
+        .meta i {
+            color: #176b4a;
+            margin-right: 5px;
+        }
+        
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        
+        .chip {
+            background: #e4f3e9;
+            color: #176b4a;
+            font-size: 12px;
+            padding: 3px 10px;
+            border-radius: 20px;
+        }
+        
+        .badge {
+            display: inline-block;
+            font-size: 12px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        
+        .b-green {
+            background: #dff3e6;
+            color: #176b4a;
+        }
+        
+        .b-amber {
+            background: #fff1d6;
+            color: #9a6400;
+        }
+        
+        .b-red {
+            background: #fde4e4;
+            color: #c34242;
+        }
+        
+        .b-blue {
+            background: #dfeefc;
+            color: #1a5fa6;
+        }
+        
+        .card .push {
+            margin-top: auto;
+            padding-top: 8px;
+        }
+        
+        .empty {
+            text-align: center;
+            color: #777;
+            padding: 40px 10px;
+            grid-column: 1 / -1;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            color: #176b4a;
+            margin: 8px 0 14px;
+        }
+        
+        .box {
+            background: #fff;
+            border-radius: 14px;
+            padding: 22px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, .07);
+            margin-bottom: 22px;
+        }
+        
+        .note {
+            font-size: 13px;
+            color: #777;
+            margin-top: 10px;
+        }
+        /* FORMS */
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+        
+        .form-grid .full {
+            grid-column: 1 / -1;
+        }
+        
+        label.lbl {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        input[type=text],
+        input[type=email],
+        input[type=tel],
+        input[type=url],
+        input[type=number],
+        input[type=datetime-local],
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d5e5db;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            background: #fff;
+        }
+        
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #176b4a;
+            box-shadow: 0 0 5px rgba(23, 107, 74, .2);
+        }
+        
+        textarea {
+            min-height: 90px;
+            resize: vertical;
+        }
+        
+        .checks {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 16px;
+        }
+        
+        .checks label {
+            font-size: 13px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.12);
-            color: white;
-            text-decoration: none;
-            transition: 0.3s;
+            gap: 6px;
+            cursor: pointer;
         }
         
-        .footer-social a:hover {
-            background: #088178;
-            transform: translateY(-3px);
+        .row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
         }
         
-        .footer-bottom {
-            border-top: 1px solid rgba(255, 255, 255, 0.15);
-            padding-top: 20px;
+        .row>input,
+        .row>select {
+            flex: 1;
+            min-width: 140px;
+        }
+        /* TOAST */
+        
+        #toast {
+            position: fixed;
+            bottom: 22px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #176b4a;
+            color: #fff;
+            padding: 12px 22px;
+            border-radius: 10px;
+            font-size: 14px;
+            z-index: 3000;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
+            display: none;
+            max-width: 90%;
+        }
+        
+        #toast.err {
+            background: #c34242;
+        }
+        
+        footer {
+            background: #fff;
             text-align: center;
-            color: #c5d8cc;
-            font-size: 12px;
-        }
-        /* RESPONSIVE */
-        
-        @media(max-width: 950px) {
-            #navbar {
-                gap: 15px;
-            }
-            #navbar a {
-                font-size: 12px;
-            }
-            .organization-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
+            padding: 26px 20px;
+            color: #777;
+            font-size: 13px;
         }
         
-        @media(max-width: 700px) {
-            .main-header {
-                padding: 14px 5%;
-            }
+        footer a {
+            color: #176b4a;
+            text-decoration: none;
+            margin: 0 8px;
+        }
+        
+        footer a:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 800px) {
             .menu-toggle {
                 display: block;
+            }
+            .main-header {
+                padding: 14px 5%;
             }
             #navbar {
                 display: none;
@@ -409,34 +467,21 @@
                 top: 75px;
                 left: 0;
                 width: 100%;
-                background: white;
+                background: #fff;
                 padding: 20px 7%;
                 flex-direction: column;
                 align-items: flex-start;
-                gap: 20px;
-                box-shadow: 0 8px 15px rgba(0, 0, 0, 0.08);
+                gap: 18px;
+                box-shadow: 0 8px 15px rgba(0, 0, 0, .08);
             }
             #navbar.show {
                 display: flex;
             }
-            #navbar a.active::after {
-                display: none;
-            }
-            .hero {
-                padding: 50px 6%;
-            }
             .hero h1 {
-                font-size: 27px;
+                font-size: 26px;
             }
-            .stats {
+            .form-grid {
                 grid-template-columns: 1fr;
-            }
-            .organization-grid {
-                grid-template-columns: 1fr;
-            }
-            .footer-container {
-                grid-template-columns: 1fr;
-                gap: 28px;
             }
         }
     </style>
@@ -444,330 +489,504 @@
 
 <body>
 
-    <!-- NAVIGATION -->
 
 
     <!-- HERO -->
     <section class="hero">
-
-        <div class="hero-icon">
-            <i class="fa-solid fa-handshake-angle"></i>
+        <h1>NGOs Taking Action on Your City's Issues</h1>
+        <p>Verified NGOs pick up real complaints reported on ApnaCity and organise clean-ups, repairs and awareness drives. Join an activity as a volunteer, or register your NGO to start helping.</p>
+        <div class="stats" id="stats"></div>
+        <div class="hero-actions">
+            <button class="btn btn-light" data-go="activities"><i class="fa-solid fa-hand-holding-heart"></i> Join an activity</button>
+            <button class="btn btn-light" data-go="register"><i class="fa-solid fa-handshake-angle"></i> Register your NGO</button>
         </div>
-
-        <h1>NGOs & Organizations</h1>
-
-        <p>
-            Discover NGOs, community groups and organizations currently working to solve civic problems and improve our cities. Connect, collaborate and create impact.
-        </p>
-
     </section>
 
-    <!-- MAIN CONTENT -->
     <main class="container">
 
-        <div class="section-title">
-            <h2>Organizations Working for Our City</h2>
-            <p>Explore organizations contributing towards a cleaner, safer and better city.</p>
+        <div class="tabs" id="tabs">
+            <button data-tab="activities" class="active">Activities</button>
+            <button data-tab="action">Issues in Action</button>
+            <button data-tab="ngos">Verified NGOs</button>
+            <button data-tab="register" id="tabRegister">Register NGO</button>
+            <button data-tab="mine" id="tabMine" hidden>My NGO</button>
+            <button data-tab="admin" id="tabAdmin" hidden>Admin</button>
         </div>
 
-        <!-- STATISTICS -->
-        <div class="stats">
-
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fa-solid fa-building"></i>
-                </div>
-                <div>
-                    <h3>6</h3>
-                    <p>Listed Organizations</p>
-                </div>
+        <section id="panel-activities">
+            <div class="grid" id="activitiesGrid">
+                <p class="empty">Loading...</p>
             </div>
-
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fa-solid fa-handshake"></i>
-                </div>
-                <div>
-                    <h3>5</h3>
-                    <p>Working Categories</p>
-                </div>
+        </section>
+        <section id="panel-action" hidden>
+            <div class="grid" id="actionGrid">
+                <p class="empty">Loading...</p>
             </div>
-
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fa-solid fa-location-dot"></i>
-                </div>
-                <div>
-                    <h3>Multiple</h3>
-                    <p>Working Locations</p>
-                </div>
+        </section>
+        <section id="panel-ngos" hidden>
+            <div class="grid" id="ngoGrid">
+                <p class="empty">Loading...</p>
             </div>
-
-        </div>
-
-        <!-- ORGANIZATION CARDS -->
-        <div class="organization-grid">
-
-            <article class="org-card">
-                <div class="org-top">
-                    <div class="org-icon">
-                        <i class="fa-solid fa-leaf"></i>
-                    </div>
-                    <span class="verified">
-                        <i class="fa-solid fa-circle-check"></i> Listed
-                    </span>
-                </div>
-
-                <span class="category">Environment</span>
-                <h3>Environment Action Group</h3>
-
-                <p class="org-description">
-                    A sample listing for an organization focused on cleanliness, waste management and environmental awareness.
-                </p>
-
-                <div class="org-info">
-                    <p><i class="fa-solid fa-location-dot"></i> Chandigarh, India</p>
-                    <p><i class="fa-solid fa-clock"></i> Activity: To be confirmed</p>
-                </div>
-
-                <div class="org-actions">
-                    <button class="btn btn-primary" onclick="showNotice()">
-                        View Details
-                    </button>
-                </div>
-            </article>
-
-            <article class="org-card">
-                <div class="org-top">
-                    <div class="org-icon">
-                        <i class="fa-solid fa-book-open"></i>
-                    </div>
-                    <span class="verified">
-                        <i class="fa-solid fa-circle-check"></i> Listed
-                    </span>
-                </div>
-
-                <span class="category">Education</span>
-                <h3>Community Education Initiative</h3>
-
-                <p class="org-description">
-                    A sample listing for a group supporting education, learning opportunities and community development.
-                </p>
-
-                <div class="org-info">
-                    <p><i class="fa-solid fa-location-dot"></i> Mohali, India</p>
-                    <p><i class="fa-solid fa-clock"></i> Activity: To be confirmed</p>
-                </div>
-
-                <div class="org-actions">
-                    <button class="btn btn-primary" onclick="showNotice()">
-                        View Details
-                    </button>
-                </div>
-            </article>
-
-            <article class="org-card">
-                <div class="org-top">
-                    <div class="org-icon">
-                        <i class="fa-solid fa-heart-pulse"></i>
-                    </div>
-                    <span class="verified">
-                        <i class="fa-solid fa-circle-check"></i> Listed
-                    </span>
-                </div>
-
-                <span class="category">Health</span>
-                <h3>Community Health Support</h3>
-
-                <p class="org-description">
-                    A sample listing for an organization supporting health awareness and community welfare activities.
-                </p>
-
-                <div class="org-info">
-                    <p><i class="fa-solid fa-location-dot"></i> Panchkula, India</p>
-                    <p><i class="fa-solid fa-clock"></i> Activity: To be confirmed</p>
-                </div>
-
-                <div class="org-actions">
-                    <button class="btn btn-primary" onclick="showNotice()">
-                        View Details
-                    </button>
-                </div>
-            </article>
-
-            <article class="org-card">
-                <div class="org-top">
-                    <div class="org-icon">
-                        <i class="fa-solid fa-people-group"></i>
-                    </div>
-                    <span class="verified">
-                        <i class="fa-solid fa-circle-check"></i> Listed
-                    </span>
-                </div>
-
-                <span class="category">Community Development</span>
-                <h3>Local Community Welfare Group</h3>
-
-                <p class="org-description">
-                    A sample listing for community volunteers working on local development and citizen support.
-                </p>
-
-                <div class="org-info">
-                    <p><i class="fa-solid fa-location-dot"></i> Chandigarh, India</p>
-                    <p><i class="fa-solid fa-clock"></i> Activity: To be confirmed</p>
-                </div>
-
-                <div class="org-actions">
-                    <button class="btn btn-primary" onclick="showNotice()">
-                        View Details
-                    </button>
-                </div>
-            </article>
-
-            <article class="org-card">
-                <div class="org-top">
-                    <div class="org-icon">
-                        <i class="fa-solid fa-paw"></i>
-                    </div>
-                    <span class="verified">
-                        <i class="fa-solid fa-circle-check"></i> Listed
-                    </span>
-                </div>
-
-                <span class="category">Animal Welfare</span>
-                <h3>Animal Care Support Group</h3>
-
-                <p class="org-description">
-                    A sample listing for volunteers and organizations supporting animal welfare and rescue activities.
-                </p>
-
-                <div class="org-info">
-                    <p><i class="fa-solid fa-location-dot"></i> Mohali, India</p>
-                    <p><i class="fa-solid fa-clock"></i> Activity: To be confirmed</p>
-                </div>
-
-                <div class="org-actions">
-                    <button class="btn btn-primary" onclick="showNotice()">
-                        View Details
-                    </button>
-                </div>
-            </article>
-
-            <article class="org-card">
-                <div class="org-top">
-                    <div class="org-icon">
-                        <i class="fa-solid fa-recycle"></i>
-                    </div>
-                    <span class="verified">
-                        <i class="fa-solid fa-circle-check"></i> Listed
-                    </span>
-                </div>
-
-                <span class="category">Environment</span>
-                <h3>Clean City Volunteer Network</h3>
-
-                <p class="org-description">
-                    A sample listing for volunteers promoting neighbourhood cleanliness and recycling.
-                </p>
-
-                <div class="org-info">
-                    <p><i class="fa-solid fa-location-dot"></i> Zirakpur, India</p>
-                    <p><i class="fa-solid fa-clock"></i> Activity: To be confirmed</p>
-                </div>
-
-                <div class="org-actions">
-                    <button class="btn btn-primary" onclick="showNotice()">
-                        View Details
-                    </button>
-                </div>
-            </article>
-
-        </div>
+        </section>
+        <section id="panel-register" hidden></section>
+        <section id="panel-mine" hidden></section>
+        <section id="panel-admin" hidden></section>
 
     </main>
 
-    <!-- FOOTER -->
-    <footer class="apna-footer">
-
-        <div class="footer-container">
-
-            <div class="footer-about">
-                <a href="index.html" class="footer-logo">
-                    Apna<span>City</span>
-                </a>
-
-                <p>
-                    Apna City is a civic engagement platform that connects citizens, authorities and organizations to build cleaner, safer and better communities.
-                </p>
-
-                <div class="footer-social">
-                    <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
-                    <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
-                    <a href="#" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
-                    <a href="#" aria-label="X"><i class="fa-brands fa-x-twitter"></i></a>
-                </div>
-            </div>
-
-            <div class="footer-column">
-                <h3>Quick Links</h3>
-                <a href="index.html">Home</a>
-                <a href="report.html">Report an Issue</a>
-                <a href="track.html">Track Complaint</a>
-                <a href="impact.html">Verified Impact</a>
-            </div>
-
-            <div class="footer-column">
-                <h3>Explore</h3>
-                <a href="ngo.html">NGO Directory</a>
-                <a href="about.html">About Us</a>
-                <a href="index.html">Our Mission</a>
-                <a href="index.html">Community</a>
-            </div>
-
-        </div>
-
-        <div class="footer-bottom">
-            <p>
-                © <span id="year"></span> Apna City. All Rights Reserved. Building Better Cities Together.
-            </p>
-        </div>
-
+    <footer>
+        <p>&copy; <span id="year">2026</span> ApnaCity. All Rights Reserved.</p>
+        <p style="margin-top:8px;">
+            <a href="index.html">Home</a>
+            <a href="Register_a_Issue.html">Report an Issue</a>
+            <a href="Track_report_status.html">Track Complaint</a>
+            <a href="verified_impact.html">Verified Impact</a>
+            <a href="About.html">About Us</a>
+        </p>
     </footer>
 
-    <!-- JAVASCRIPT -->
+    <div id="toast" role="status"></div>
+
+    <script src="auth.js"></script>
     <script>
-        // Mobile navigation
-        const menuToggle = document.getElementById("menuToggle");
-        const navbar = document.getElementById("navbar");
+        (function() {
+                const $ = (id) => document.getElementById(id);
+                const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g,
+                    (c) => ({
+                        "&": "&amp;",
+                        "<": "&lt;",
+                        ">": "&gt;",
+                        '"': "&quot;",
+                        "'": "&#39;"
+                    }[c]));
+                const fmt = (v) => {
+                    const d = new Date(v);
+                    return isNaN(d) ? "-" : d.toLocaleString("en-IN", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                        hour: "numeric",
+                        minute: "2-digit"
+                    });
+                };
+                const fmtDay = (v) => {
+                    const d = new Date(v);
+                    return isNaN(d) ? "-" : d.toLocaleDateString("en-IN", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric"
+                    });
+                };
+                const CATS = ["Waste Management", "Road Damage", "Water Supply", "Drainage", "Street Light",
+                    "Pollution", "Animal", "Environment", "Traffic", "Other"
+                ];
 
-        menuToggle.addEventListener("click", function() {
-            const isOpen = navbar.classList.toggle("show");
+                let me = null; // {email, role}
+                let mine = null; // {ngo, actions, activities}
 
-            menuToggle.setAttribute("aria-expanded", isOpen);
-            menuToggle.innerHTML = isOpen ?
-                '<i class="fa-solid fa-xmark"></i>' :
-                '<i class="fa-solid fa-bars"></i>';
-        });
+                // ---------- helpers ----------
+                async function api(path, method, body) {
+                    const opts = {
+                        method: method || "GET",
+                        credentials: "same-origin"
+                    };
+                    if (body !== undefined) {
+                        opts.headers = {
+                            "Content-Type": "application/json"
+                        };
+                        opts.body = JSON.stringify(body);
+                    }
+                    try {
+                        const res = await fetch(path, opts);
+                        let data = {};
+                        try {
+                            data = await res.json();
+                        } catch (e) {}
+                        return {
+                            ok: res.ok && data.success !== false,
+                            status: res.status,
+                            data
+                        };
+                    } catch (e) {
+                        return {
+                            ok: false,
+                            status: 0,
+                            data: {
+                                message: "Could not reach the server."
+                            }
+                        };
+                    }
+                }
 
-        // Close mobile menu after clicking a link
-        navbar.querySelectorAll("a").forEach(link => {
-            link.addEventListener("click", function() {
-                navbar.classList.remove("show");
-                menuToggle.setAttribute("aria-expanded", "false");
-                menuToggle.innerHTML = '<i class="fa-solid fa-bars"></i>';
+                let toastTimer;
+
+                function toast(msg, isErr) {
+                    const t = $("toast");
+                    t.textContent = msg;
+                    t.className = isErr ? "err" : "";
+                    t.style.display = "block";
+                    clearTimeout(toastTimer);
+                    toastTimer = setTimeout(() => {
+                        t.style.display = "none";
+                    }, 3500);
+                }
+
+                const needLogin = () => {
+                    window.location.href = "login.html";
+                };
+                const chips = (csv) => String(csv || "").split(",").filter(Boolean)
+                    .map((c) => `<span class="chip">${esc(c.trim())}</span>`).join("");
+                const statusBadge = (s) => {
+                    const cls = {
+                        "Completed": "b-green",
+                        "In Progress": "b-blue",
+                        "Taken Up": "b-amber",
+                        verified: "b-green",
+                        pending: "b-amber",
+                        rejected: "b-red"
+                    }[s] || "b-amber";
+                    return `<span class="badge ${cls}">${esc(s)}</span>`;
+                };
+                const priorityBadge = (sev) => {
+                    const cls = sev === "High" ? "b-red" : sev === "Medium" ? "b-amber" : "b-green";
+                    return `<span class="badge ${cls}">${esc(sev)} priority</span>`;
+                };
+
+                // ---------- tabs ----------
+                const loaders = {};
+
+                function showTab(name) {
+                    document.querySelectorAll("#tabs button").forEach((b) => b.classList.toggle("active", b.dataset.tab === name));
+                    ["activities", "action", "ngos", "register", "mine", "admin"].forEach((p) => {
+                        $("panel-" + p).hidden = p !== name;
+                    });
+                    if (loaders[name]) loaders[name]();
+                }
+                $("tabs").addEventListener("click", (e) => {
+                    const b = e.target.closest("button[data-tab]");
+                    if (b) showTab(b.dataset.tab);
+                });
+                document.querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click", () => {
+                    showTab(b.dataset.go);
+                    window.scrollTo({
+                        top: 300,
+                        behavior: "smooth"
+                    });
+                }));
+
+                // ---------- overview (stats, issues in action, NGO list) ----------
+                async function loadOverview() {
+                    const {
+                        ok,
+                        data
+                    } = await api("/api/ngos/overview");
+                    if (!ok) {
+                        $("actionGrid").innerHTML = '<p class="empty">Could not load data right now.</p>';
+                        $("ngoGrid").innerHTML = '<p class="empty">Could not load data right now.</p>';
+                        return;
+                    }
+                    const s = data.stats;
+                    $("stats").innerHTML = [
+                        ["Verified NGOs", s.ngos],
+                        ["Issues taken up", s.issues],
+                        ["Upcoming activities", s.upcoming],
+                        ["Volunteers", s.volunteers]
+                    ].map(([l, n]) => `<div class="stat"><strong>${esc(n)}</strong><span>${l}</span></div>`).join("");
+
+                    $("actionGrid").innerHTML = data.actions.length ? data.actions.map((a) => `
+                    <article class="card">
+                        <div>${statusBadge(a.status)}</div>
+                        <h3>${esc(a.Category)}</h3>
+                        <p>${esc(a.Issue)}</p>
+                        <div class="meta">
+                            <span><i class="fa-solid fa-location-dot"></i>${esc(a.Area_Locality || "")}${a.City ? ", " + esc(a.City) : ""}</span>
+                            <span><i class="fa-solid fa-handshake-angle"></i>${esc(a.ngo_name)}</span>
+                            <span><i class="fa-regular fa-calendar"></i>${esc(fmtDay(a.created_at))}</span>
+                        </div>
+                    </article>`).join("") :
+                        '<p class="empty">No NGO has taken up an issue yet. Verified NGOs can pick up citizen complaints from their dashboard.</p>';
+
+                    $("ngoGrid").innerHTML = data.ngos.length ? data.ngos.map((n) => `
+                    <article class="card">
+                        <h3>${esc(n.name)}</h3>
+                        <div class="meta"><span><i class="fa-solid fa-city"></i>${esc(n.city)}</span></div>
+                        <div class="chips">${chips(n.focus)}</div>
+                        <p>${esc(n.description || "")}</p>
+                        <div class="meta">
+                            <span><i class="fa-solid fa-circle-check"></i>${esc(n.issues_taken)} issues taken</span>
+                            <span><i class="fa-solid fa-trophy"></i>${esc(n.issues_completed)} completed</span>
+                            <span><i class="fa-solid fa-calendar-check"></i>${esc(n.activities)} activities</span>
+                        </div>
+                        <div class="row push">
+                            ${n.contact_email ? `<a class="btn btn-outline btn-sm" href="mailto:${esc(n.contact_email)}"><i class="fa-solid fa-envelope"></i> Contact</a>` : ""}
+                            ${n.website ? `<a class="btn btn-outline btn-sm" href="${esc(n.website)}" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-globe"></i> Website</a>` : ""}
+                        </div>
+                    </article>`).join("") :
+                    '<p class="empty">No verified NGOs yet. Be the first to register!</p>';
+            }
+            loaders.action = loadOverview;
+            loaders.ngos = loadOverview;
+
+            // ---------- activities ----------
+            async function loadActivities() {
+                const { ok, data } = await api("/api/ngos/activities");
+                const grid = $("activitiesGrid");
+                if (!ok) { grid.innerHTML = '<p class="empty">Could not load activities.</p>'; return; }
+                if (!data.activities.length) {
+                    grid.innerHTML = '<p class="empty">No upcoming activities right now. Check back soon.</p>';
+                    return;
+                }
+                grid.innerHTML = data.activities.map((a) => {
+                    const full = a.max_volunteers && a.joined >= a.max_volunteers && !a.i_joined;
+                    const btn = a.i_joined ?
+                        `<button class="btn btn-outline btn-sm" data-leave="${a.id}"><i class="fa-solid fa-xmark"></i> Leave</button>` :
+                        full ? `<button class="btn btn-outline btn-sm" disabled>Full</button>` :
+                        `<button class="btn btn-primary btn-sm" data-join="${a.id}"><i class="fa-solid fa-hand-holding-heart"></i> Join as volunteer</button>`;
+                    return `
+                    <article class="card">
+                        <div class="chips">${a.category ? `<span class="chip">${esc(a.category)}</span>` : ""}${a.linked_issue ? '<span class="chip">Linked to a citizen complaint</span>' : ""}</div>
+                        <h3>${esc(a.title)}</h3>
+                        <p>${esc(a.description || "")}</p>
+                        <div class="meta">
+                            <span><i class="fa-regular fa-clock"></i>${esc(fmt(a.event_date))}</span>
+                            <span><i class="fa-solid fa-location-dot"></i>${esc(a.location)}, ${esc(a.city)}</span>
+                            <span><i class="fa-solid fa-handshake-angle"></i>${esc(a.ngo_name)}</span>
+                            <span><i class="fa-solid fa-users"></i>${esc(a.joined)}${a.max_volunteers ? " / " + esc(a.max_volunteers) : ""} volunteers</span>
+                        </div>
+                        <div class="push">${btn}</div>
+                    </article>`;
+                }).join("");
+            }
+            loaders.activities = loadActivities;
+
+            $("activitiesGrid").addEventListener("click", async (e) => {
+                const btn = e.target.closest("[data-join], [data-leave]");
+                if (!btn) return;
+                if (!me) { needLogin(); return; }
+                const joining = btn.hasAttribute("data-join");
+                const id = joining ? btn.dataset.join : btn.dataset.leave;
+                btn.disabled = true;
+                const r = await api(`/api/ngos/activities/${encodeURIComponent(id)}/${joining ? "join" : "leave"}`, "POST");
+                toast(r.data.message || (r.ok ? "Done" : "Failed"), !r.ok);
+                loadActivities();
+                loadOverview();
             });
-        });
 
-        // Organization details notice
-        function showNotice() {
-            alert("Detailed organization information will be available soon.");
-        }
+            // ---------- register NGO ----------
+            function renderRegister() {
+                const p = $("panel-register");
+                if (!me) {
+                    p.innerHTML = `<div class="box"><h2 class="section-title">Register your NGO</h2>
+                        <p>Please <a href="login.html">log in</a> or <a href="signin.html">create an account</a> first, then come back to register your organisation.</p></div>`;
+                    return;
+                }
+                if (mine && mine.ngo) {
+                    p.innerHTML = `<div class="box"><h2 class="section-title">${esc(mine.ngo.name)}</h2>
+                        <p>Status: ${statusBadge(mine.ngo.status)}</p>
+                        <p class="note">${mine.ngo.status === "verified" ? "Your NGO is verified. Use the My NGO tab." : "An admin will review your NGO. You will be able to take up complaints once it is verified."}</p></div>`;
+                    return;
+                }
+                p.innerHTML = `
+                <form class="box" id="ngoForm">
+                    <h2 class="section-title">Register your NGO</h2>
+                    <div class="form-grid">
+                        <div class="full"><label class="lbl" for="n_name">NGO name</label><input type="text" id="n_name" maxlength="120" required></div>
+                        <div class="full"><label class="lbl">Areas you work in</label>
+                            <div class="checks">${CATS.map((c) => `<label><input type="checkbox" name="focus" value="${esc(c)}"> ${esc(c)}</label>`).join("")}</div></div>
+                        <div><label class="lbl" for="n_city">City</label><input type="text" id="n_city" maxlength="100" required></div>
+                        <div><label class="lbl" for="n_email">Contact email</label><input type="email" id="n_email" required></div>
+                        <div><label class="lbl" for="n_phone">Contact mobile (optional)</label><input type="tel" id="n_phone" maxlength="15"></div>
+                        <div><label class="lbl" for="n_web">Website (optional)</label><input type="url" id="n_web" placeholder="https://"></div>
+                        <div class="full"><label class="lbl" for="n_desc">About your NGO</label><textarea id="n_desc" maxlength="1000"></textarea></div>
+                    </div>
+                    <p class="note">Your contact email, city and website are shown publicly once an admin verifies your NGO.</p>
+                    <button class="btn btn-primary" type="submit" style="margin-top:14px;"><i class="fa-solid fa-paper-plane"></i> Submit for verification</button>
+                </form>`;
+                $("ngoForm").addEventListener("submit", async (e) => {
+                    e.preventDefault();
+                    const body = {
+                        name: $("n_name").value, city: $("n_city").value, contact_email: $("n_email").value,
+                        contact_phone: $("n_phone").value, website: $("n_web").value, description: $("n_desc").value,
+                        focus: [...document.querySelectorAll('input[name="focus"]:checked')].map((c) => c.value)
+                    };
+                    const r = await api("/api/ngos/register", "POST", body);
+                    toast(r.data.message || (r.ok ? "Submitted" : "Failed"), !r.ok);
+                    if (r.ok) { await loadMine(); renderRegister(); }
+                });
+            }
+            loaders.register = renderRegister;
 
-        // Dynamic footer year
-        document.getElementById("year").textContent =
-            new Date().getFullYear();
+            // ---------- my NGO dashboard ----------
+            async function loadMine() {
+                if (!me) return;
+                const r = await api("/api/ngos/mine");
+                mine = r.ok ? r.data : null;
+                const has = !!(mine && mine.ngo);
+                $("tabMine").hidden = !has;
+                $("tabRegister").hidden = has;
+            }
+
+            async function renderMine() {
+                const p = $("panel-mine");
+                await loadMine();
+                if (!mine || !mine.ngo) { p.innerHTML = '<p class="empty">No NGO registered yet.</p>'; return; }
+                const n = mine.ngo;
+                let html = `<div class="box"><h2 class="section-title">${esc(n.name)} ${statusBadge(n.status)}</h2>`;
+                if (n.status !== "verified") {
+                    html += `<p>${n.status === "pending" ? "Your NGO is waiting for admin verification." : "Your NGO was not approved. Contact the ApnaCity admin for details."}</p></div>`;
+                    p.innerHTML = html;
+                    return;
+                }
+                html += `<p class="note">Take up citizen complaints, update progress and organise activities for volunteers.</p></div>`;
+
+                // issues in progress
+                html += `<h3 class="section-title">Issues you are working on</h3><div class="grid">` +
+                    (mine.actions.length ? mine.actions.map((a) => `
+                        <article class="card" data-action="${a.id}">
+                            <div>${statusBadge(a.status)} <span class="chip">${esc(a.Complaint_Status)}</span></div>
+                            <h3>${esc(a.Category)}</h3>
+                            <p>${esc(a.Issue)}</p>
+                            <div class="meta"><span><i class="fa-solid fa-location-dot"></i>${esc(a.Area_Locality || "")}${a.City ? ", " + esc(a.City) : ""}</span><span>${esc(a.Complaint_ID)}</span></div>
+                            <select class="a-status">${["Taken Up", "In Progress", "Completed"].map((s) => `<option ${s === a.status ? "selected" : ""}>${s}</option>`).join("")}</select>
+                            <input type="text" class="a-note" maxlength="300" placeholder="Progress note for the citizen (optional)" value="${esc(a.note || "")}">
+                            <button class="btn btn-primary btn-sm a-save" type="button">Save update</button>
+                        </article>`).join("") : '<p class="empty">You have not taken up any issue yet.</p>') + `</div>`;
+
+                // open issues
+                html += `<h3 class="section-title" style="margin-top:28px;">Open citizen complaints</h3>
+                    <div class="row" style="margin-bottom:14px;"><input type="text" id="issueCity" placeholder="Filter by city (optional)"><button class="btn btn-outline btn-sm" id="issueSearch" type="button">Search</button></div>
+                    <div class="grid" id="openIssues"><p class="empty">Loading...</p></div>`;
+
+                // create activity
+                html += `<form class="box" id="actForm" style="margin-top:28px;">
+                    <h3 class="section-title">Create an activity</h3>
+                    <div class="form-grid">
+                        <div class="full"><label class="lbl" for="a_title">Title</label><input type="text" id="a_title" maxlength="150" placeholder="e.g. Sunday clean-up drive at Sector 5 park" required></div>
+                        <div><label class="lbl" for="a_date">Date and time</label><input type="datetime-local" id="a_date" required></div>
+                        <div><label class="lbl" for="a_max">Max volunteers (optional)</label><input type="number" id="a_max" min="1" max="10000"></div>
+                        <div><label class="lbl" for="a_city">City</label><input type="text" id="a_city" maxlength="100" value="${esc(n.city || "")}" required></div>
+                        <div><label class="lbl" for="a_loc">Meeting location</label><input type="text" id="a_loc" maxlength="255" required></div>
+                        <div><label class="lbl" for="a_cat">Category (optional)</label><select id="a_cat"><option value="">-</option>${CATS.map((c) => `<option>${esc(c)}</option>`).join("")}</select></div>
+                        <div><label class="lbl" for="a_cid">Link to a complaint you took up (optional)</label><select id="a_cid"><option value="">-</option>${mine.actions.map((a) => `<option value="${esc(a.Complaint_ID)}">${esc(a.Category)} - ${esc(a.Area_Locality || a.City || "")} (${esc(a.Complaint_ID)})</option>`).join("")}</select></div>
+                        <div class="full"><label class="lbl" for="a_desc">Details for volunteers</label><textarea id="a_desc" maxlength="1500" placeholder="What to bring, what the work involves..."></textarea></div>
+                    </div>
+                    <button class="btn btn-primary" type="submit" style="margin-top:14px;"><i class="fa-solid fa-calendar-plus"></i> Publish activity</button>
+                </form>`;
+
+                // my activities
+                html += `<h3 class="section-title">Your activities</h3><div class="grid">` +
+                    (mine.activities.length ? mine.activities.map((a) => `
+                        <article class="card"><h3>${esc(a.title)}</h3>
+                        <div class="meta"><span><i class="fa-regular fa-clock"></i>${esc(fmt(a.event_date))}</span><span><i class="fa-solid fa-location-dot"></i>${esc(a.location)}, ${esc(a.city)}</span>
+                        <span><i class="fa-solid fa-users"></i>${esc(a.joined)}${a.max_volunteers ? " / " + esc(a.max_volunteers) : ""} volunteers</span></div></article>`).join("") :
+                        '<p class="empty">No activities yet.</p>') + `</div>`;
+
+                p.innerHTML = html;
+                loadOpenIssues();
+
+                $("issueSearch").addEventListener("click", loadOpenIssues);
+                $("actForm").addEventListener("submit", async (e) => {
+                    e.preventDefault();
+                    const r = await api("/api/ngos/activities", "POST", {
+                        title: $("a_title").value, event_date: $("a_date").value, max_volunteers: $("a_max").value,
+                        city: $("a_city").value, location: $("a_loc").value, category: $("a_cat").value,
+                        complaint_id: $("a_cid").value, description: $("a_desc").value
+                    });
+                    toast(r.data.message || (r.ok ? "Created" : "Failed"), !r.ok);
+                    if (r.ok) { renderMine(); loadActivities(); loadOverview(); }
+                });
+                p.querySelectorAll(".a-save").forEach((b) => b.addEventListener("click", async () => {
+                    const card = b.closest("[data-action]");
+                    const r = await api(`/api/ngos/actions/${encodeURIComponent(card.dataset.action)}/status`, "POST", {
+                        status: card.querySelector(".a-status").value, note: card.querySelector(".a-note").value
+                    });
+                    toast(r.ok ? "Update saved. The citizen was notified." : (r.data.message || "Failed"), !r.ok);
+                    if (r.ok) { renderMine(); loadOverview(); }
+                }));
+            }
+            loaders.mine = renderMine;
+
+            async function loadOpenIssues() {
+                const box = $("openIssues");
+                if (!box) return;
+                const city = $("issueCity") ? $("issueCity").value.trim() : "";
+                const r = await api("/api/ngos/open-issues" + (city ? "?city=" + encodeURIComponent(city) : ""));
+                if (!r.ok) { box.innerHTML = `<p class="empty">${esc(r.data.message || "Could not load complaints.")}</p>`; return; }
+                box.innerHTML = r.data.issues.length ? r.data.issues.map((i) => `
+                    <article class="card">
+                        <div>${priorityBadge(i.Severity)}</div>
+                        <h3>${esc(i.Category)}</h3>
+                        <p>${esc(i.Issue)}</p>
+                        <div class="meta">
+                            <span><i class="fa-solid fa-location-dot"></i>${esc(i.Area_Locality || "")}${i.City ? ", " + esc(i.City) : ""}</span>
+                            <span><i class="fa-solid fa-thumbs-up"></i>${esc(i.Citizen_Support_Count)} supporters</span>
+                            <span><i class="fa-solid fa-handshake-angle"></i>${esc(i.ngos_on_it)} NGO(s) on it</span>
+                        </div>
+                        <div class="push"><button class="btn btn-primary btn-sm" data-take="${esc(i.Complaint_ID)}"><i class="fa-solid fa-hand-holding-heart"></i> Take up this issue</button></div>
+                    </article>`).join("") : '<p class="empty">No open complaints to show right now.</p>';
+            }
+            $("panel-mine").addEventListener("click", async (e) => {
+                const b = e.target.closest("[data-take]");
+                if (!b) return;
+                b.disabled = true;
+                const r = await api(`/api/ngos/issues/${encodeURIComponent(b.dataset.take)}/take`, "POST");
+                toast(r.data.message || (r.ok ? "Done" : "Failed"), !r.ok);
+                if (r.ok) { renderMine(); loadOverview(); } else { b.disabled = false; }
+            });
+
+            // ---------- admin ----------
+            async function renderAdmin() {
+                const p = $("panel-admin");
+                const r = await api("/api/admin/ngos");
+                if (!r.ok) { p.innerHTML = `<p class="empty">${esc(r.data.message || "Could not load NGOs.")}</p>`; return; }
+                p.innerHTML = `<h2 class="section-title">NGO verification</h2><div class="grid">` +
+                    (r.data.ngos.length ? r.data.ngos.map((n) => `
+                    <article class="card">
+                        <div>${statusBadge(n.status)}</div>
+                        <h3>${esc(n.name)}</h3>
+                        <div class="chips">${chips(n.focus)}</div>
+                        <p>${esc(n.description || "")}</p>
+                        <div class="meta"><span><i class="fa-solid fa-city"></i>${esc(n.city)}</span><span><i class="fa-solid fa-envelope"></i>${esc(n.contact_email)}</span>
+                        ${n.contact_phone ? `<span><i class="fa-solid fa-phone"></i>${esc(n.contact_phone)}</span>` : ""}
+                        ${n.website ? `<span><i class="fa-solid fa-globe"></i>${esc(n.website)}</span>` : ""}</div>
+                        <div class="row push">
+                            <button class="btn btn-primary btn-sm" data-ngo="${n.id}" data-set="verified">Verify</button>
+                            <button class="btn btn-danger btn-sm" data-ngo="${n.id}" data-set="rejected">Reject</button>
+                        </div>
+                    </article>`).join("") : '<p class="empty">No NGOs registered yet.</p>') + `</div>
+                    <p class="note">Check the NGO's details and website before verifying. Verified NGOs can see and take up shared citizen complaints.</p>`;
+            }
+            loaders.admin = renderAdmin;
+            $("panel-admin").addEventListener("click", async (e) => {
+                const b = e.target.closest("[data-ngo]");
+                if (!b) return;
+                b.disabled = true;
+                const r = await api(`/api/admin/ngos/${encodeURIComponent(b.dataset.ngo)}/status`, "POST", { status: b.dataset.set });
+                toast(r.ok ? "NGO " + b.dataset.set : (r.data.message || "Failed"), !r.ok);
+                renderAdmin();
+                loadOverview();
+            });
+
+            // ---------- mobile menu + year ----------
+            const toggle = $("menuToggle"), nav = $("navbar");
+            toggle.addEventListener("click", () => {
+                const open = nav.classList.toggle("show");
+                toggle.setAttribute("aria-expanded", open);
+                toggle.innerHTML = open ? '<i class="fa-solid fa-xmark"></i>' : '<i class="fa-solid fa-bars"></i>';
+            });
+            $("year").textContent = new Date().getFullYear();
+
+            // ---------- start ----------
+            (async function init() {
+                const r = await api("/api/me");
+                me = r.ok ? r.data : null;
+                if (me && me.role === "admin") $("tabAdmin").hidden = false;
+                await loadMine();
+                loadActivities();
+                loadOverview();
+            })();
+        })();
     </script>
-
 </body>
 
 </html>
