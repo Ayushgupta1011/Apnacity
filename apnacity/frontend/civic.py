@@ -277,31 +277,8 @@ def detect_category(text):
     return "Other"
 
 
-# ==========================================
-# AI ISSUE ANALYSIS / CATEGORY CLASSIFICATION
-# ==========================================
-
-def ai_analyze_issue(description):
-    """
-    Classify a civic complaint and prepare its database fields.
-    This is keyword-based classification, not Gemini AI.
-    """
-
-    if not isinstance(description, str) or not description.strip():
-        raise ValueError("Issue description is required.")
-
-    description = description.strip()
-
-    category = detect_category(description)
-
-    return {
-        "issue": description,
-        "category": category,
-        "responsible_authority": detect_department(category),
-        "severity": "Medium",
-        "ai_confidence": 0.80,
-        "priority_score": 50
-    }
+def detect_department(category):
+    return DEPARTMENTS.get(category, "Municipal Corporation")
 
 
 SEVERITY_SCORES = {"Low": 30, "Medium": 50, "High": 80}
