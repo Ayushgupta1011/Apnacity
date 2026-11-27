@@ -1021,10 +1021,52 @@ def health():
 # SERVE WEBSITE FILES
 # ==========================================
 
+
+# ==========================================
+# SERVE WEBSITE FILES AND IMAGES
+# ==========================================
+
+from pathlib import Path
+from flask import send_from_directory, jsonify
+
+BASE_DIR = Path(__file__).resolve().parent
+
 ALLOWED_EXT = (
-    ".html", ".jpg", ".jpeg", ".png", ".gif",
-    ".svg", ".webp", ".css", ".js", ".ico"
+    ".html", ".htm",
+    ".jpg", ".jpeg", ".png", ".gif",
+    ".svg", ".webp", ".avif", ".ico",
+    ".css", ".js"
 )
+
+@app.route("/", methods=["GET"])
+def home():
+    return send_from_directory(str(BASE_DIR), "index.html")
+
+
+@app.route("/login", methods=["GET"])
+def login_page():
+    return redirect("/login.html")
+
+
+@app.route("/signup", methods=["GET"])
+def signup_page():
+    return redirect("/signin.html")
+
+
+@app.route("/<path:filename>", methods=["GET"])
+def site_files(filename):
+
+    # Only allow known website and image file extensions.
+    if Path(filename).suffix.lower() not in ALLOWED_EXT:
+        return jsonify({
+            "success": False,
+            "message": "File not found"
+        }), 404
+
+    # Serve files from the frontend directory.
+    # This also permits public access to uploaded images.
+    return send_from_directory(str(BASE_DIR), filename)
+
 
 
 @app.route("/", methods=["GET"])
