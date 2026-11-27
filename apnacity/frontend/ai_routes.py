@@ -9,7 +9,7 @@ from collections import defaultdict, deque
 
 from flask import jsonify, request
 
-from ai import analyze_image, generate_complaint_letter
+from ai import AINotConfigured, analyze_image, build_fallback_letter, generate_complaint_letter
 
 MAX_IMAGE_BYTES = 5 * 1024 * 1024
 ALLOWED_MIME = {"image/jpeg", "image/png", "image/webp"}
@@ -89,12 +89,16 @@ def register_ai_routes(app, verify_token, get_db, detect_category, departments):
             "language": data.get("language", "English"),
         }
 
+        # The AI is optional: if it fails, return a standard letter so the
+        # citizen can still submit the complaint.
         try:
             result = generate_complaint_letter(info)
+        except AINotConfigured:
+            print("AI is not configured: add GEMINI_API_KEY to .env and restart civic.py")
+            result = build_fallback_letter(info)
         except Exception as e:
-            print("Gemini letter error:", e)
-            return jsonify({"success": False,
-                            "message": "AI service is unavailable right now. Please try again."}), 502
+            print("Gemini letter error (standard letter used instead):", e)
+            result = build_fallback_letter(info)
 
         return jsonify({"success": True, **result})
 
@@ -121,6 +125,9 @@ def register_ai_routes(app, verify_token, get_db, detect_category, departments):
 
         try:
             return jsonify(analyze_image(image_bytes, mime))
+        except AINotConfigured:
+            print("AI is not configured: add GEMINI_API_KEY to .env and restart civic.py")
+            return jsonify({"error": "AI is not set up on the server yet (missing GEMINI_API_KEY)."}), 503
         except Exception as e:
             print("Gemini image error:", e)
             return jsonify({"error": "AI service is unavailable right now."}), 502
