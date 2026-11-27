@@ -21,8 +21,15 @@ try:
 except ImportError:
     print("Tip: run 'pip install python-dotenv' to load settings from .env")
 app = Flask(__name__, static_folder=None)
-UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+notify = None   # set in init_app() when notify.py is available
+# Photos are saved under UPLOAD_ROOT. On Render the normal disk is wiped on every
+# deploy/restart, so attach a Persistent Disk and set UPLOAD_ROOT to its mount path.
+UPLOAD_ROOT = os.getenv("UPLOAD_ROOT", BASE_DIR)
+UPLOAD_DIR = os.path.join(UPLOAD_ROOT, "uploads")
+try:
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+except OSError as e:
+    print(f"Cannot create upload folder {UPLOAD_DIR}: {e}")
 app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024   # 5 MB upload limit
 CORS(app)
 
@@ -40,11 +47,20 @@ IMPACT_ADMIN_ONLY = os.getenv("IMPACT_ADMIN_ONLY", "false").lower() == "true"
 # ==============================
 
 def db_config(with_database=True):
+    try:
+        port = int(os.getenv("DB_PORT", "3306"))
+    except ValueError:
+        port = 3306
     cfg = {
         "host": os.getenv("DB_HOST", "localhost"),
+        "port": port,
         "user": os.getenv("DB_USER", "root"),
         "password": os.getenv("DB_PASSWORD", ""),
+        "connection_timeout": 10,
     }
+    ssl_ca = os.getenv("DB_SSL_CA")          # cloud databases often need this
+    if ssl_ca:
+        cfg["ssl_ca"] = ssl_ca
     if with_database:
         cfg["database"] = DB_NAME
     return cfg
@@ -54,7 +70,7 @@ def get_db():
     try:
         return mysql.connector.connect(**db_config())
     except Error as e:
-        print(f"Database Error: {e}")
+        print(f"Database Connection Error: {e}   (run: python check_db.py)")
         return None
 
 
@@ -116,6 +132,10 @@ def init_db():
         cur.execute("SHOW COLUMNS FROM civic_complaints LIKE 'User_ID'")
         if not cur.fetchone():
             cur.execute("ALTER TABLE civic_complaints ADD COLUMN User_ID INT NULL")
+        cur.execute("SHOW COLUMNS FROM civic_complaints LIKE 'Share_With_NGOs'")
+        if not cur.fetchone():
+            cur.execute("ALTER TABLE civic_complaints "
+                        "ADD COLUMN Share_With_NGOs TINYINT(1) NOT NULL DEFAULT 1")
         cur.execute("""
             CREATE TABLE IF NOT EXISTS impact_images (
                 slot VARCHAR(10) PRIMARY KEY,
@@ -130,7 +150,7 @@ def init_db():
         print("Database ready.")
         return True
     except Error as e:
-        print(f"Could not initialise database: {e}")
+        print(f"Database Connection Error: {e}   (run: python check_db.py)")
         return False
 
 
@@ -259,6 +279,9 @@ def detect_category(text):
 
 def detect_department(category):
     return DEPARTMENTS.get(category, "Municipal Corporation")
+
+
+SEVERITY_SCORES = {"Low": 30, "Medium": 50, "High": 80}
 
 
 def ai_analyze_issue(description):
@@ -415,6 +438,21 @@ def create_report():
 
     analysis = ai_analyze_issue(description)
 
+    # The report page sends the category/severity the AI found from the photo or letter.
+    # Only known values are accepted, anything else is ignored.
+    cat = str(data.get("category") or "").strip()
+    if cat in DEPARTMENTS or cat == "Other":
+        analysis["category"] = cat
+        analysis["responsible_authority"] = detect_department(cat)
+    sev = str(data.get("severity") or "").strip().capitalize()
+    if sev in SEVERITY_SCORES:
+        analysis["severity"] = sev
+        analysis["priority_score"] = SEVERITY_SCORES[sev]
+
+    lat = to_float(data.get("latitude"))
+    lon = to_float(data.get("longitude"))
+    force = str(data.get("force", "")).lower() in ("true", "1", "yes")
+
     conn = get_db()
     if not conn:
         return jsonify({"success": False, "message": "Database connection failed"}), 500
@@ -422,7 +460,32 @@ def create_report():
     cursor = None
     try:
         cursor = conn.cursor()
-        complaint_id = f"CIV-{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}"
+
+        # Same kind of open complaint within ~200 m? Offer to support it instead.
+        if lat is not None and lon is not None and not force:
+            cursor.execute(
+                """SELECT Complaint_ID FROM civic_complaints
+                   WHERE Category = %s
+                     AND Complaint_Status IN ('Pending', 'In Progress')
+                     AND Latitude  BETWEEN %s AND %s
+                     AND Longitude BETWEEN %s AND %s
+                     AND (User_ID IS NULL OR User_ID <> %s)
+                   ORDER BY Created_At DESC LIMIT 1""",
+                (analysis["category"], lat - 0.002, lat + 0.002,
+                 lon - 0.002, lon + 0.002, payload["user_id"]))
+            dup = cursor.fetchone()
+            if dup:
+                return jsonify({
+                    "success": False,
+                    "duplicate": True,
+                    "existing_id": dup[0],
+                    "message": "A similar complaint was already reported nearby.",
+                }), 409
+
+        if notify:
+            complaint_id = notify.new_complaint_id()
+        else:
+            complaint_id = f"CIV-{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}"
 
         query = """
             INSERT INTO civic_complaints (
@@ -441,8 +504,8 @@ def create_report():
             data.get("city"),
             data.get("area_locality") or data.get("Area"),
             data.get("zone"),
-            to_float(data.get("latitude")),
-            to_float(data.get("longitude")),
+            lat,
+            lon,
             analysis["issue"],
             analysis["category"],
             analysis["responsible_authority"],
@@ -456,6 +519,23 @@ def create_report():
         )
 
         cursor.execute(query, values)
+
+        # optional extras: contact phone (for SMS) and the AI-written letter
+        phone = notify.normalize_phone(data.get("phone")) if notify else None
+        letter = (data.get("letter") or data.get("complaint_letter") or "")[:5000]
+        if phone or letter:
+            try:
+                cursor.execute(
+                    "UPDATE civic_complaints SET Contact_Phone = %s, Complaint_Letter = %s "
+                    "WHERE Complaint_ID = %s", (phone, letter or None, complaint_id))
+            except Error as e:
+                print(f"Could not save phone/letter (run init again?): {e}")
+        share = 0 if str(data.get("share_with_ngos", "true")).lower() in ("false", "0", "no") else 1
+        try:
+            cursor.execute("UPDATE civic_complaints SET Share_With_NGOs = %s "
+                           "WHERE Complaint_ID = %s", (share, complaint_id))
+        except Error as e:
+            print(f"Could not save NGO sharing choice: {e}")
         conn.commit()
 
         return jsonify({
@@ -589,7 +669,7 @@ def file_too_large(e):
     return jsonify({"success": False, "message": "File is too large (maximum 5 MB)"}), 413
 
 
-@app.route("/api/impact", methods=["GET"])
+@app.route("/api/impact-photos", methods=["GET"])
 def impact_images():
     """Current BEFORE / AFTER photos for the Verified Impact page."""
     conn = get_db()
@@ -610,7 +690,7 @@ def impact_images():
         conn.close()
 
 
-@app.route("/api/impact/upload", methods=["POST"])
+@app.route("/api/impact-photos/upload", methods=["POST"])
 def impact_upload():
     payload = verify_token()
     if not payload:
@@ -676,11 +756,60 @@ def impact_upload():
         conn.close()
 
 
+@app.route("/api/impact/<complaint_id>", methods=["GET"])
+def impact_lookup(complaint_id):
+    """Verified Impact search box. Anyone can look up a VERIFIED fix;
+    other complaints are only visible to their owner or an admin."""
+    conn = get_db()
+    if not conn:
+        return jsonify({"success": False, "message": "Database connection failed"}), 500
+    cursor = None
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(
+            """SELECT Complaint_ID, Issue, Category, Complaint_Status, City, Area_Locality,
+                      Responsible_Authority, Resolution_Verified, Created_At, User_ID
+               FROM civic_complaints WHERE Complaint_ID = %s""", (complaint_id.strip(),))
+        row = cursor.fetchone()
+        not_found = (jsonify({"success": False, "message": "Complaint not found."}), 404)
+        if not row:
+            return not_found
+
+        verified = (row["Resolution_Verified"] == "Yes" and row["Complaint_Status"] == "Resolved")
+        if not verified:
+            payload = verify_token()
+            if not payload or (payload.get("role") != "admin"
+                               and row["User_ID"] != payload.get("user_id")):
+                return not_found
+
+        created = row["Created_At"]
+        return jsonify({"success": True, "impact": {
+            "complaint_id": row["Complaint_ID"],
+            "issue": row["Issue"],
+            "category": row["Category"],
+            "status": row["Complaint_Status"],
+            "city": row["City"],
+            "area": row["Area_Locality"],
+            "authority": row["Responsible_Authority"],
+            "verified": verified,
+            "created_at": created.strftime("%d %b %Y") if hasattr(created, "strftime") else None,
+        }})
+    except Error as e:
+        print(f"Impact lookup error: {e}")
+        return jsonify({"success": False, "message": "Unable to load complaint details."}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        conn.close()
+
+
 # ==============================
 # SERVE THE WEBSITE (HTML + images)
 # ==============================
 
-ALLOWED_EXT = (".html", ".jpg", ".jpeg", ".png", ".gif", ".svg", ".webp", ".css", ".js", ".ico")
+# Complaint photos are private: they are only served by /media/ (extras.py) after a permission check
+PRIVATE_PREFIXES = ("user_uploads/", "uploads/complaints/")
+ALLOWED_EXT = (".html", ".jpg", ".jpeg", ".png", ".gif", ".svg", ".webp", ".avif", ".css", ".js", ".ico")
 
 
 @app.route("/", methods=["GET"])
@@ -698,12 +827,105 @@ def signup_page():
     return redirect("/signin.html")
 
 
+def find_site_file(filename):
+    """Find a website file under BASE_DIR. Linux (Render) is case-sensitive and Windows
+    is not, so 'img/Logo.JPG' vs 'img/logo.jpg' works on your PC but not online.
+    This matches names ignoring case, and falls back to the project root when an
+    image was not put inside the img folder."""
+    parts = [p for p in filename.replace("\\", "/").split("/") if p]
+    if not parts or any(p in ("..", ".") for p in parts):
+        return None
+    candidates = [parts]
+    if parts[0].lower() == "img" and len(parts) > 1:
+        candidates.append(parts[1:])
+    for cand in candidates:
+        cur, found = BASE_DIR, []
+        for part in cand:
+            try:
+                names = os.listdir(cur)
+            except OSError:
+                found = None
+                break
+            match = part if part in names else next((n for n in names if n.lower() == part.lower()), None)
+            if not match:
+                found = None
+                break
+            found.append(match)
+            cur = os.path.join(cur, match)
+        if found and os.path.isfile(cur):
+            return "/".join(found)
+    return None
+
+
+def is_private_path(path):
+    norm = path.replace("\\", "/").lower()
+    return norm.startswith(PRIVATE_PREFIXES) or any(p.startswith(".") for p in norm.split("/"))
+
+
+@app.route("/uploads/<path:filename>", methods=["GET"])
+def uploaded_files(filename):
+    """Public photos (Verified Impact BEFORE/AFTER). Complaint photos are never served here."""
+    norm = filename.replace("\\", "/").lower()
+    if (norm.startswith("complaints/") or not norm.endswith(ALLOWED_EXT)
+            or any(p.startswith(".") or p == ".." for p in norm.split("/"))):
+        return jsonify({"success": False, "message": "Not found"}), 404
+    return send_from_directory(UPLOAD_DIR, filename)
+
+
 @app.route("/<path:filename>", methods=["GET"])
 def site_files(filename):
-    # only serve website files, never civic.py / req.txt
-    if not filename.lower().endswith(ALLOWED_EXT):
+    # only serve website files, never civic.py / requirements.txt / private photos
+    if not filename.lower().endswith(ALLOWED_EXT) or is_private_path(filename):
         return jsonify({"success": False, "message": "Not found"}), 404
-    return send_from_directory(BASE_DIR, filename)
+    real = find_site_file(filename)
+    if not real or is_private_path(real):
+        return jsonify({"success": False, "message": "Not found"}), 404
+    return send_from_directory(BASE_DIR, real)
+
+
+# ==============================
+# FEATURE MODULES (notify.py, extras.py, ai_routes.py)
+# ==============================
+
+_app_ready = False
+
+
+def init_app():
+    """Create the tables, then register the optional modules. Safe to call twice.
+    Order matters: tables first, because the modules add columns to them."""
+    global _app_ready, notify
+    if _app_ready:
+        return True
+    _app_ready = True
+
+    db_ok = init_db()
+
+    try:
+        import notify as _notify
+        _notify.register_notify_routes(app, verify_token, get_db)
+        notify = _notify
+    except ImportError as e:
+        print(f"Notifications are off ({e}). Run: pip install -r req.txt")
+
+    try:
+        import extras
+        extras.register_extra_routes(app, verify_token, get_db, UPLOAD_ROOT)
+    except ImportError as e:
+        print(f"Photo/support routes are off ({e}).")
+
+    try:
+        import ai_routes
+        ai_routes.register_ai_routes(app, verify_token, get_db, detect_category, DEPARTMENTS)
+    except ImportError as e:
+        print(f"AI routes are off ({e}). Run: pip install -r req.txt")
+
+    return db_ok
+
+
+# gunicorn (Render) imports this file and never runs the __main__ block below,
+# so set up the tables and the extra modules here as well.
+if __name__ != "__main__" and os.getenv("AUTO_INIT", "true").lower() == "true":
+    init_app()
 
 
 # ==============================
@@ -714,7 +936,7 @@ if __name__ == "__main__":
     if SECRET_KEY == "CIVICAI_SECRET_KEY_CHANGE_THIS":
         print("WARNING: using the default JWT secret. Set JWT_SECRET before deploying.")
 
-    if not init_db():
+    if not init_app():
         print("Database not available - pages will open, but login/report will fail "
               "until MySQL is running and DB_PASSWORD is set.")
 
