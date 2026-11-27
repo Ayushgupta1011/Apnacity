@@ -9,6 +9,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="icon" href="img/logo.jpeg">
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
         * {
@@ -642,7 +644,7 @@
 
                 <div class="search-box">
 
-                    <input type="text" id="searchInput" placeholder="Enter Complaint ID (DEL-CIV-0001)">
+                    <input type="text" id="searchInput" placeholder="Enter Complaint ID (CIV-2026...)">
 
                     <button class="btn" onclick="searchComplaint()">
                     <i class="fa-solid fa-magnifying-glass"></i>
@@ -668,9 +670,9 @@
                     <option value="All">All Categories</option>
                     <option value="Road">Road</option>
                     <option value="Water">Water</option>
-                    <option value="Garbage">Garbage</option>
-                    <option value="Electricity">Electricity</option>
-                    <option value="Streetlight">Streetlight</option>
+                    <option value="Waste">Waste</option>
+                    <option value="Drainage">Drainage</option>
+                    <option value="Street Light">Street Light</option>
                 </select>
 
                 </div>
@@ -733,7 +735,7 @@
         const menuToggle = document.getElementById("menuToggle");
         const navbar = document.getElementById("navbar");
 
-        menuToggle.addEventListener("click", () => {
+        if (menuToggle) menuToggle.addEventListener("click", () => {
 
             navbar.classList.toggle("active");
 
@@ -753,754 +755,112 @@
         document.getElementById("year").textContent =
             new Date().getFullYear();
 
-        
-// =====================================================
-// APNACITY - LIVE COMPLAINT TRACKING DASHBOARD
-// =====================================================
+        // ---- LOAD COMPLAINTS FROM civic.py ----
+        let complaints = [];
+        let selectedId = null;
 
-(function () {
-    "use strict";
+        const esc = v => String(v == null ? "" : v).replace(/[&<>"']/g,
+            c => ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#39;"
+            }[c]));
+        const statusClass = s => String(s || "Pending").replace(/\s+/g, "-");
 
-    const $ = (id) => document.getElementById(id);
+        async function loadComplaints() {
+            const list = document.getElementById("complaintList");
+            try {
+                const res = await fetch("/api/reports", {
+                    credentials: "same-origin"
+                });
 
-    const REFRESH_INTERVAL = 10000;
-
-    let complaints = [];
-    let selectedId = null;
-    let listLoading = false;
-    let detailRequest = 0;
-    let lastUpdated = null;
-
-    // =================================================
-    // INITIAL SETTINGS
-    // =================================================
-
-    if ($("year")) {
-        $("year").textContent = new Date().getFullYear();
-    }
-
-    const menuToggle = $("menuToggle");
-    const navbar = $("navbar");
-
-    if (menuToggle && navbar) {
-        menuToggle.addEventListener("click", function () {
-            navbar.classList.toggle("active");
-
-            const open = navbar.classList.contains("active");
-
-            menuToggle.setAttribute("aria-expanded", String(open));
-
-            menuToggle.innerHTML = open
-                ? '<i class="fa-solid fa-xmark"></i>'
-                : '<i class="fa-solid fa-bars"></i>';
-        });
-    }
-
-    // =================================================
-    // LIVE INDICATOR AND REFRESH BUTTON
-    // =================================================
-
-    function createLiveControls() {
-        const count = $("resultCount");
-
-        if (!count || !count.parentNode) return;
-
-        const wrapper = document.createElement("div");
-
-        wrapper.style.cssText =
-            "display:flex;align-items:center;gap:12px;flex-wrap:wrap;";
-
-        const indicator = document.createElement("small");
-        indicator.id = "liveIndicator";
-        indicator.style.cssText =
-            "color:#176b4a;font-size:11px;";
-
-        indicator.textContent = "● Live updates enabled";
-
-        const refresh = document.createElement("button");
-        refresh.id = "refreshTracking";
-        refresh.type = "button";
-        refresh.className = "btn";
-        refresh.style.cssText =
-            "padding:7px 12px;font-size:11px;";
-
-        refresh.innerHTML =
-            '<i class="fa-solid fa-rotate"></i> Refresh';
-
-        refresh.addEventListener("click", function () {
-            loadComplaints(true);
-        });
-
-        wrapper.append(count, indicator, refresh);
-
-        count.parentNode.replaceChild(wrapper, count);
-    }
-
-    createLiveControls();
-
-    function updateLiveIndicator(message, error) {
-        const indicator = $("liveIndicator");
-
-        if (!indicator) return;
-
-        indicator.textContent = message;
-        indicator.style.color = error ? "#c34242" : "#176b4a";
-    }
-
-    // =================================================
-    // API HANDLER
-    // =================================================
-
-    async function apiGet(url) {
-        let response;
-
-        try {
-            response = await fetch(url, {
-                method: "GET",
-                credentials: "same-origin",
-                cache: "no-store",
-                headers: {
-                    "Accept": "application/json"
+                if (res.status === 401) {
+                    window.location.href = "login.html";
+                    return;
                 }
-            });
-        } catch (error) {
-            throw new Error("Cannot connect to ApnaCity server.");
-        }
-
-        const raw = await response.text();
-
-        let data;
-
-        try {
-            data = raw ? JSON.parse(raw) : {};
-        } catch (error) {
-            console.error("Tracking API returned invalid data:", {
-                url: url,
-                status: response.status,
-                response: raw.substring(0, 500)
-            });
-
-            throw new Error(
-                "Invalid server response. HTTP " + response.status
-            );
-        }
-
-        if (response.status === 401) {
-            window.location.href = "login.html";
-            throw new Error("Login required.");
-        }
-
-        if (!response.ok || data.success === false) {
-            throw new Error(
-                data.message || "Unable to load complaint."
-            );
-        }
-
-        return data;
-    }
-
-    // =================================================
-    // NORMALIZE VALUES
-    // =================================================
-
-    function normalizeStatus(value) {
-        return String(value || "Pending")
-            .replace(/[-_]/g, " ")
-            .trim()
-            .toLowerCase();
-    }
-
-    function formatStatus(value) {
-        const status = normalizeStatus(value);
-
-        const labels = {
-            "pending": "Pending",
-            "in progress": "In Progress",
-            "resolved": "Resolved",
-            "rejected": "Rejected"
-        };
-
-        return labels[status] || "Pending";
-    }
-
-    function getStatusClass(value) {
-        return formatStatus(value).replace(/\s+/g, "-");
-    }
-
-    function formatDate(value) {
-        if (!value) return "Not available";
-
-        const date = new Date(value);
-
-        if (Number.isNaN(date.getTime())) {
-            return String(value);
-        }
-
-        return date.toLocaleString();
-    }
-
-    function safeValue(value) {
-        return value === null || value === undefined || value === ""
-            ? "Not available"
-            : String(value);
-    }
-
-    // =================================================
-    // STATISTICS
-    // =================================================
-
-    function updateStatistics() {
-        const count = (status) => complaints.filter(
-            c => normalizeStatus(c.Complaint_Status) === status
-        ).length;
-
-        $("total").textContent = complaints.length;
-        $("pending").textContent = count("pending");
-        $("progress").textContent = count("in progress");
-        $("resolved").textContent = count("resolved");
-    }
-
-    // =================================================
-    // FILTER COMPLAINTS
-    // =================================================
-
-    function getFilteredComplaints() {
-        const search = $("searchInput").value.trim().toLowerCase();
-
-        const status = $("statusFilter").value;
-        const category = $("categoryFilter").value.toLowerCase();
-
-        return complaints.filter(function (c) {
-            const id = String(c.Complaint_ID || "").toLowerCase();
-
-            const issue = String(c.Issue || "").toLowerCase();
-
-            const area = String(c.Area_Locality || "").toLowerCase();
-
-            const cat = String(c.Category || "").toLowerCase();
-
-            const searchMatch =
-                !search ||
-                id.includes(search) ||
-                issue.includes(search) ||
-                area.includes(search) ||
-                cat.includes(search);
-
-            const statusMatch =
-                status === "All" ||
-                normalizeStatus(c.Complaint_Status) ===
-                normalizeStatus(status);
-
-            const categoryMatch =
-                category === "all" ||
-                cat.includes(category);
-
-            return searchMatch && statusMatch && categoryMatch;
-        });
-    }
-
-    // =================================================
-    // RENDER COMPLAINT LIST
-    // =================================================
-
-    function render() {
-        const list = $("complaintList");
-
-        if (!list) return;
-
-        updateStatistics();
-
-        const shown = getFilteredComplaints();
-
-        const oldCount = $("recordCount");
-
-        if (oldCount) {
-            oldCount.textContent = shown.length + " Records";
-        }
-
-        list.replaceChildren();
-
-        if (!shown.length) {
-            const empty = document.createElement("div");
-            empty.className = "empty";
-
-            empty.textContent = complaints.length
-                ? "No complaints match your search or filters."
-                : "You have not submitted any complaints yet.";
-
-            list.appendChild(empty);
-            return;
-        }
-
-        shown.forEach(function (c) {
-            const card = document.createElement("div");
-            card.className = "complaint";
-
-            if (c.Complaint_ID === selectedId) {
-                card.classList.add("selected");
+                const data = await res.json();
+                complaints = data.reports || [];
+            } catch (err) {
+                list.innerHTML = '<div class="empty">Could not reach the server. Is civic.py running?</div>';
+                return;
             }
-
-            const top = document.createElement("div");
-            top.className = "complaint-top";
-
-            const heading = document.createElement("h4");
-            heading.textContent = safeValue(c.Category);
-
-            const badge = document.createElement("span");
-            badge.className =
-                "status " + getStatusClass(c.Complaint_Status);
-
-            badge.textContent = formatStatus(c.Complaint_Status);
-
-            top.append(heading, badge);
-
-            const description = document.createElement("p");
-            description.textContent = safeValue(c.Issue);
-
-            const meta = document.createElement("div");
-            meta.className = "complaint-meta";
-
-            const id = document.createElement("span");
-            id.textContent = safeValue(c.Complaint_ID);
-
-            const location = document.createElement("span");
-            location.textContent =
-                safeValue(c.Area_Locality || c.City);
-
-            meta.append(id, location);
-
-            card.append(top, description, meta);
-
-            card.addEventListener("click", function () {
-                showDetails(c.Complaint_ID);
-            });
-
-            list.appendChild(card);
-        });
-    }
-
-    // =================================================
-    // ADD COMPLAINT DETAIL ROW
-    // =================================================
-
-    function addRow(container, label, value) {
-        const row = document.createElement("div");
-        row.className = "detail-row";
-
-        const name = document.createElement("span");
-        name.textContent = label;
-
-        const data = document.createElement("span");
-        data.textContent = safeValue(value);
-
-        row.append(name, data);
-
-        container.appendChild(row);
-    }
-
-    // =================================================
-    // LIVE STATUS PROGRESS
-    // =================================================
-
-    function renderProgress(container, status) {
-        const current = normalizeStatus(status);
-
-        const section = document.createElement("div");
-        section.className = "progress-section";
-
-        const heading = document.createElement("h4");
-        heading.textContent = "Current Complaint Progress";
-
-        section.appendChild(heading);
-
-        const timeline = document.createElement("div");
-        timeline.className = "timeline";
-
-        if (current === "rejected") {
-            const step = document.createElement("div");
-            step.className = "step done";
-
-            const title = document.createElement("h5");
-            title.textContent = "Complaint Rejected";
-
-            const note = document.createElement("p");
-            note.textContent =
-                "Check the administrator's decision or contact the relevant authority.";
-
-            step.append(title, note);
-            timeline.appendChild(step);
-
-        } else {
-            const stages = [
-                {
-                    name: "Complaint Received",
-                    status: "pending"
-                },
-                {
-                    name: "Work In Progress",
-                    status: "in progress"
-                },
-                {
-                    name: "Complaint Resolved",
-                    status: "resolved"
-                }
-            ];
-
-            let completed = 0;
-
-            if (current === "in progress") completed = 1;
-            if (current === "resolved") completed = 2;
-
-            stages.forEach(function (stage, index) {
-                const step = document.createElement("div");
-
-                if (index <= completed) {
-                    step.className = "step done";
-                } else {
-                    step.className = "step";
-                }
-
-                const title = document.createElement("h5");
-                title.textContent = stage.name;
-
-                const note = document.createElement("p");
-
-                note.textContent =
-                    index === completed
-                        ? "Current database status: " +
-                          formatStatus(status)
-                        : index < completed
-                            ? "Previous stage"
-                            : "Awaiting this stage";
-
-                step.append(title, note);
-                timeline.appendChild(step);
-            });
-        }
-
-        section.appendChild(timeline);
-        container.appendChild(section);
-    }
-
-    // =================================================
-    // ACTUAL STATUS HISTORY
-    // =================================================
-
-    function renderHistory(container, history) {
-        const section = document.createElement("div");
-        section.className = "progress-section";
-
-        const heading = document.createElement("h4");
-        heading.textContent = "Status Update History";
-
-        section.appendChild(heading);
-
-        if (!Array.isArray(history) || !history.length) {
-            const message = document.createElement("p");
-
-            message.className = "empty";
-
-            message.textContent =
-                "No detailed status history is available yet. " +
-                "The current complaint status is refreshed automatically.";
-
-            section.appendChild(message);
-            container.appendChild(section);
-            return;
-        }
-
-        const timeline = document.createElement("div");
-        timeline.className = "timeline";
-
-        history.forEach(function (item) {
-            const step = document.createElement("div");
-            step.className = "step done";
-
-            const title = document.createElement("h5");
-            title.textContent = formatStatus(item.status);
-
-            const note = document.createElement("p");
-            note.textContent = safeValue(item.note);
-
-            const date = document.createElement("p");
-            date.textContent = formatDate(item.created_at);
-
-            step.append(title, note, date);
-            timeline.appendChild(step);
-        });
-
-        section.appendChild(timeline);
-        container.appendChild(section);
-    }
-
-    // =================================================
-    // FETCH ONE COMPLAINT
-    // =================================================
-
-    async function showDetails(id) {
-        selectedId = id;
-
-        const requestId = ++detailRequest;
-
-        render();
-
-        const box = $("complaintDetails");
-
-        box.textContent = "Loading latest complaint information...";
-
-        try {
-            const data = await apiGet(
-                "/api/reports/" +
-                encodeURIComponent(id) +
-                "?_=" + Date.now()
-            );
-
-            if (requestId !== detailRequest) return;
-
-            const report = data.report;
-
-            if (!report) {
-                throw new Error("Complaint details unavailable.");
-            }
-
-            box.replaceChildren();
-
-            const heading = document.createElement("h3");
-            heading.className = "detail-title";
-            heading.textContent = safeValue(report.Category);
-
-            const complaintId = document.createElement("div");
-            complaintId.className = "detail-id";
-            complaintId.textContent = safeValue(report.Complaint_ID);
-
-            box.append(heading, complaintId);
-
-            const badge = document.createElement("span");
-            badge.className =
-                "status " + getStatusClass(report.Complaint_Status);
-            badge.textContent = formatStatus(report.Complaint_Status);
-
-            box.appendChild(badge);
-
-            addRow(box, "Issue", report.Issue);
-            addRow(box, "City", report.City);
-            addRow(box, "Area", report.Area_Locality);
-
-            addRow(
-                box,
-                "Responsible Authority",
-                report.Responsible_Authority
-            );
-
-            addRow(box, "Severity", report.Severity);
-            addRow(box, "Days Open", report.Days_Open);
-            addRow(box, "Priority Score", report.Priority_Score);
-            addRow(
-                box,
-                "Resolution Verified",
-                report.Resolution_Verified
-            );
-
-            renderProgress(box, report.Complaint_Status);
-
-            // Render actual history only when backend provides it.
-            renderHistory(box, data.history || report.history || []);
-
-            lastUpdated = new Date();
-
             render();
-
-        } catch (error) {
-            if (requestId !== detailRequest) return;
-
-            console.error("Complaint detail error:", error);
-
-            box.textContent = error.message;
-        }
-    }
-
-    // =================================================
-    // SEARCH COMPLAINT
-    // =================================================
-
-    async function searchComplaint() {
-        const query = $("searchInput").value.trim();
-
-        if (!query) {
-            render();
-            return;
         }
 
-        const match = complaints.find(function (c) {
-            return String(c.Complaint_ID || "").toLowerCase() ===
-                query.toLowerCase();
-        });
+        function render() {
+            const q = document.getElementById("searchInput").value.trim().toLowerCase();
+            const status = document.getElementById("statusFilter").value;
+            const cat = document.getElementById("categoryFilter").value.toLowerCase();
 
-        if (match) {
-            await showDetails(match.Complaint_ID);
-            return;
-        }
+            const countOf = s => complaints.filter(c => c.Complaint_Status === s).length;
+            document.getElementById("total").textContent = complaints.length;
+            document.getElementById("pending").textContent = countOf("Pending");
+            document.getElementById("progress").textContent = countOf("In Progress");
+            document.getElementById("resolved").textContent = countOf("Resolved");
 
-        // Also allow a direct full complaint-ID lookup.
-        $("complaintDetails").textContent =
-            "Searching for complaint...";
-
-        try {
-            const data = await apiGet(
-                "/api/reports/" +
-                encodeURIComponent(query) +
-                "?_=" + Date.now()
+            const shown = complaints.filter(c =>
+                (!q || c.Complaint_ID.toLowerCase().includes(q)) &&
+                (status === "All" || c.Complaint_Status === status) &&
+                (cat === "all" || (c.Category || "").toLowerCase().includes(cat))
             );
 
-            if (!data.report) {
-                throw new Error("Complaint not found.");
-            }
+            document.getElementById("resultCount").textContent = shown.length + " Records";
+            const list = document.getElementById("complaintList");
 
-            const report = data.report;
-
-            const alreadyListed = complaints.some(
-                c => c.Complaint_ID === report.Complaint_ID
-            );
-
-            if (alreadyListed) {
-                await showDetails(report.Complaint_ID);
+            if (!shown.length) {
+                list.innerHTML = '<div class="empty">No complaints found.</div>';
                 return;
             }
 
-            // Only add a result the backend has authorised the user to view.
-            selectedId = report.Complaint_ID;
+            list.innerHTML = shown.map(c => `
+                <div class="complaint ${c.Complaint_ID === selectedId ? "selected" : ""}"
+                     onclick="showDetails('${esc(c.Complaint_ID)}')">
+                    <div class="complaint-top">
+                        <h4>${esc(c.Category)}</h4>
+                        <span class="status ${statusClass(c.Complaint_Status)}">${esc(c.Complaint_Status)}</span>
+                    </div>
+                    <p>${esc(c.Issue)}</p>
+                    <div class="complaint-meta">
+                        <span>${esc(c.Complaint_ID)}</span>
+                        <span>${esc(c.Area_Locality || c.City || "")}</span>
+                    </div>
+                </div>`).join("");
+        }
 
-            complaints.unshift(report);
+        function showDetails(id) {
+            selectedId = id;
+            const c = complaints.find(x => x.Complaint_ID === id);
+            if (!c) return;
 
+            const row = (label, value) =>
+                `<div class="detail-row"><span>${label}</span><span>${esc(value)}</span></div>`;
+
+            document.getElementById("complaintDetails").innerHTML = `
+                <h3 class="detail-title">${esc(c.Category)}</h3>
+                <div class="detail-id">${esc(c.Complaint_ID)}</div>
+                ${row("Status", c.Complaint_Status)}
+                ${row("Issue", c.Issue)}
+                ${row("City", c.City || "-")}
+                ${row("Area", c.Area_Locality || "-")}
+                ${row("Responsible Authority", c.Responsible_Authority)}
+                ${row("Severity", c.Severity)}
+                ${row("Priority Score", c.Priority_Score)}
+                ${row("Days Open", c.Days_Open)}
+                ${row("Resolution Verified", c.Resolution_Verified)}`;
             render();
-
-            await showDetails(report.Complaint_ID);
-
-        } catch (error) {
-            $("complaintDetails").textContent =
-                "Complaint not found or you do not have permission to view it.";
         }
-    }
 
-    window.searchComplaint = searchComplaint;
-
-    // =================================================
-    // LOAD ALL COMPLAINTS
-    // =================================================
-
-    async function loadComplaints(manual = false) {
-        if (listLoading) return;
-
-        listLoading = true;
-
-        updateLiveIndicator("● Updating...", false);
-
-        const refresh = $("refreshTracking");
-
-        if (refresh) refresh.disabled = true;
-
-        try {
-            const data = await apiGet(
-                "/api/reports?_=" + Date.now()
-            );
-
-            if (!Array.isArray(data.reports)) {
-                throw new Error("Invalid complaint data from server.");
-            }
-
-            complaints = data.reports;
-
-            lastUpdated = new Date();
-
+        function searchComplaint() {
             render();
-
-            updateLiveIndicator(
-                "● Live • Updated " +
-                lastUpdated.toLocaleTimeString(),
-                false
-            );
-
-            if (selectedId) {
-                const stillExists = complaints.some(function (c) {
-                    return c.Complaint_ID === selectedId;
-                });
-
-                if (stillExists) {
-                    await showDetails(selectedId);
-                } else {
-                    selectedId = null;
-
-                    $("complaintDetails").textContent =
-                        "Select a complaint to view its details.";
-                }
-            }
-
-        } catch (error) {
-            console.error("Live dashboard error:", error);
-
-            updateLiveIndicator("● Connection problem", true);
-
-            if (!complaints.length) {
-                $("complaintList").textContent = error.message;
-            }
-
-            if (manual) {
-                $("complaintDetails").textContent = error.message;
-            }
-
-        } finally {
-            listLoading = false;
-
-            if (refresh) refresh.disabled = false;
         }
-    }
 
-    // =================================================
-    // FILTER AND SEARCH EVENTS
-    // =================================================
+        document.getElementById("searchInput").addEventListener("input", render);
+        document.getElementById("statusFilter").addEventListener("change", render);
+        document.getElementById("categoryFilter").addEventListener("change", render);
 
-    $("searchInput").addEventListener("input", render);
-
-    $("searchInput").addEventListener("keydown", function (event) {
-        if (event.key === "Enter") {
-            searchComplaint();
-        }
-    });
-
-    $("statusFilter").addEventListener("change", render);
-
-    $("categoryFilter").addEventListener("change", render);
-
-    // =================================================
-    // AUTO REFRESH
-    // =================================================
-
-    // First load
-    loadComplaints();
-
-    // Automatically check MySQL every 10 seconds.
-    window.setInterval(function () {
-        if (!document.hidden) {
-            loadComplaints();
-        }
-    }, REFRESH_INTERVAL);
-
-    // Refresh when citizen returns to the page.
-    document.addEventListener("visibilitychange", function () {
-        if (!document.hidden) {
-            loadComplaints();
-        }
-    });
-
-    // Refresh after internet reconnects.
-    window.addEventListener("online", function () {
-        loadComplaints(true);
-    });
-
-    console.log("ApnaCity live complaint tracker started.");
-
-})();
-
+        loadComplaints();
     </script>
 
 </body>
