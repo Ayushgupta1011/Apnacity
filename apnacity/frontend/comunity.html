@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ApnaCity | Community Activities</title>
+    <link rel="icon" href="img/logo.jpeg">
+    <link rel="stylesheet" href="community.css">
+</head>
+
+<body>
+
+
+
+    <section class="hero">
+        <div class="hero-content">
+            <span class="eyebrow">APNACITY COMMUNITY</span>
+            <h1>Small Actions.<br><span>Big City Impact.</span></h1>
+            <p>Join your neighbours, volunteer for local activities and help make your city better.</p>
+            <a href="#activities" class="primary-btn">Explore Activities</a>
+        </div>
+        <div class="hero-symbol">🏙️</div>
+    </section>
+
+    <section class="stats">
+        <div class="stat-card">
+            <span>Active Activities</span>
+            <strong id="totalActivities">0</strong>
+        </div>
+        <div class="stat-card">
+            <span>Total Volunteers</span>
+            <strong id="totalVolunteers">0</strong>
+        </div>
+        <div class="stat-card">
+            <span>Completed Activities</span>
+            <strong id="completedActivities">0</strong>
+        </div>
+        <div class="stat-card">
+            <span>Community Impact</span>
+            <strong id="totalImpact">0</strong>
+        </div>
+    </section>
+
+    <main class="container">
+
+        <section class="section-heading" id="activities">
+            <div>
+                <span class="eyebrow">GET INVOLVED</span>
+                <h2>Community Activities</h2>
+                <p>Find an activity and become part of the change.</p>
+            </div>
+            <button class="primary-btn" id="openCreateBtn">+ Create Activity</button>
+        </section>
+
+        <div class="toolbar">
+            <input type="search" id="searchActivity" placeholder="Search activities...">
+
+            <select id="categoryFilter">
+            <option value="">All Categories</option>
+            <option value="cleanliness">Cleanliness</option>
+            <option value="environment">Environment</option>
+            <option value="education">Education</option>
+            <option value="health">Health</option>
+            <option value="safety">Safety</option>
+            <option value="other">Other</option>
+        </select>
+
+            <select id="statusFilter">
+            <option value="">All Activities</option>
+            <option value="approved">Approved</option>
+            <option value="completed">Completed</option>
+        </select>
+        </div>
+
+        <div id="activityGrid" class="activity-grid">
+            <div class="empty-state">Loading community activities...</div>
+        </div>
+
+        <section class="section-heading secondary-heading">
+            <div>
+                <span class="eyebrow">YOUR PARTICIPATION</span>
+                <h2>My Activities</h2>
+                <p>Activities you have joined.</p>
+            </div>
+        </section>
+
+        <div id="myActivities" class="my-activities">
+            <div class="empty-state">Log in to see your activities.</div>
+        </div>
+
+        <section class="section-heading secondary-heading">
+            <div>
+                <span class="eyebrow">MAKE A DIFFERENCE</span>
+                <h2>Community Impact</h2>
+                <p>See the outcomes of community participation.</p>
+            </div>
+        </section>
+
+        <div id="impactGrid" class="impact-grid">
+            <div class="empty-state">Loading impact reports...</div>
+        </div>
+
+    </main>
+
+    <!-- CREATE ACTIVITY MODAL -->
+    <div class="modal" id="createModal">
+        <div class="modal-content">
+            <button class="close-btn" data-close="createModal">&times;</button>
+            <h2>Create Community Activity</h2>
+            <p class="form-note">Your activity may require admin approval before publication.</p>
+
+            <form id="createActivityForm">
+                <label>Activity title</label>
+                <input name="title" required maxlength="150" placeholder="Example: Clean City Drive">
+
+                <label>Description</label>
+                <textarea name="description" required rows="4" placeholder="Describe your activity..."></textarea>
+
+                <label>Category</label>
+                <select name="category" required>
+                <option value="">Select category</option>
+                <option value="cleanliness">Cleanliness</option>
+                <option value="environment">Environment</option>
+                <option value="education">Education</option>
+                <option value="health">Health</option>
+                <option value="safety">Safety</option>
+                <option value="other">Other</option>
+            </select>
+
+                <label>City</label>
+                <input name="city" required placeholder="Enter city">
+
+                <label>Location / Area</label>
+                <input name="location" required placeholder="Enter activity location">
+
+                <label>Activity date</label>
+                <input type="date" name="activity_date" required>
+
+                <label>Start time</label>
+                <input type="time" name="start_time" required>
+
+                <label>Maximum volunteers</label>
+                <input type="number" name="max_volunteers" min="1" max="10000" value="50">
+
+                <button class="primary-btn full-btn" type="submit">Submit Activity</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ACTIVITY DETAILS MODAL -->
+    <div class="modal" id="detailsModal">
+        <div class="modal-content">
+            <button class="close-btn" data-close="detailsModal">&times;</button>
+            <div id="activityDetails"></div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast" role="status"></div>
+
+    <script src="{{ url_for('static', filename='js/community.js') }}"></script>
+</body>
+
+</html>
