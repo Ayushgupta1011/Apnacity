@@ -2,16 +2,31 @@
 
 Uses the current `google-genai` library (remove `google-generativeai`
 from requirements). Set GEMINI_API_KEY in your environment.
-Optional: GEMINI_MODEL (default below). If Google retires the model,
-just change the env value - no code change needed.
+Optional: GEMINI_MODEL in .env to force one model. Otherwise the code tries the
+models in PREFERRED_MODELS (newest first) and remembers the first one that works,
+so a retired or restricted model does not break the website.
+Run  python check_ai.py  to see which models your API key can use.
 """
 import json
 import os
+import time
 
 from google import genai
 from google.genai import types
 
-MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+# Newest first. Google retires models over time (and restricts older ones to
+# accounts that already used them), so we try several.
+PREFERRED_MODELS = [
+    "gemini-3.8-flash",
+    "gemini-3.7-flash",
+    "gemini-3.6-flash",
+    "gemini-3.5-flash-lite",
+]
+
+
+class AINotConfigured(RuntimeError):
+    """GEMINI_API_KEY is missing."""
+
 
 CATEGORIES = [
     "Waste Management", "Road Damage", "Water Supply", "Drainage",
@@ -27,9 +42,78 @@ def _get_client():
     if _client is None:
         key = os.getenv("GEMINI_API_KEY")
         if not key:
-            raise RuntimeError("GEMINI_API_KEY is not set")
-        _client = genai.Client(api_key=key)
+            raise AINotConfigured("GEMINI_API_KEY is not set")
+        try:
+            _client = genai.Client(api_key=key, http_options=types.HttpOptions(timeout=25000))
+        except Exception:  # older library versions
+            _client = genai.Client(api_key=key)
     return _client
+
+
+_good_model = None
+_dead_models = set()   # models that returned "not found / no access" in this run
+
+
+def candidate_models():
+    names = []
+    for m in [_good_model, os.getenv("GEMINI_MODEL")] + PREFERRED_MODELS:
+        if m and m not in names and m not in _dead_models:
+            names.append(m)
+    return names
+
+
+def _is_transient(err):
+    """Temporary problems worth retrying: overload, rate limit, timeouts."""
+    t = str(err).lower()
+    return any(w in t for w in ("503", "unavailable", "overloaded", "high demand",
+                                "429", "resource_exhausted", "timeout", "timed out",
+                                "deadline"))
+
+
+def _is_missing(err):
+    """The model does not exist or this account has no access to it."""
+    t = str(err).lower()
+    return "404" in t or "not_found" in t or "no longer available" in t
+
+
+def _generate(contents, max_seconds=40):
+    """Call Gemini. Retries a busy model once, skips models that are closed to
+    this account, and stops after max_seconds so the website never hangs."""
+    global _good_model
+    config = types.GenerateContentConfig(response_mime_type="application/json")
+    deadline = time.time() + max_seconds
+    last_error = None
+
+    for model in candidate_models():
+        for attempt in range(2):
+            if time.time() > deadline:
+                break
+            try:
+                response = _get_client().models.generate_content(
+                    model=model, contents=contents, config=config)
+                if not (response.text or "").strip():
+                    raise ValueError("model returned no text (the answer may have been blocked)")
+                _good_model = model
+                return response
+            except AINotConfigured:
+                raise
+            except Exception as e:  # noqa
+                last_error = e
+                print(f"[Gemini] model '{model}' failed (try {attempt + 1}): {e}")
+                text = str(e).lower()
+                if "api key not valid" in text or "api_key_invalid" in text:
+                    raise
+                if _is_missing(e):
+                    _dead_models.add(model)
+                    break
+                if _is_transient(e) and attempt == 0:
+                    time.sleep(1.5)
+                    continue
+                break
+        if time.time() > deadline:
+            break
+
+    raise last_error or RuntimeError("No Gemini model is available for this API key")
 
 
 def _clean(value, limit=200):
@@ -105,14 +189,7 @@ FACTS (data):
 {json.dumps(facts, ensure_ascii=False, indent=2)}
 """
 
-    response = _get_client().models.generate_content(
-        model=MODEL,
-        contents=prompt,
-        config=types.GenerateContentConfig(
-            response_mime_type="application/json",
-            temperature=0.3,
-        ),
-    )
+    response = _generate(prompt)
     data = _parse_json(response.text)
     if not data.get("letter"):
         raise ValueError("AI returned an empty letter")
@@ -122,6 +199,52 @@ FACTS (data):
         "category": data.get("category", ""),
         "severity": data.get("severity", "Medium"),
         "letter": data["letter"],
+        "ai_used": True,
+    }
+
+
+def build_fallback_letter(info):
+    """A standard formal complaint letter, used when the AI is unavailable,
+    so submitting a complaint never depends on Gemini."""
+    name = _clean(info.get("name")) or "[Your Name]"
+    city = _clean(info.get("city")) or "[City]"
+    area = _clean(info.get("area")) or "[Area]"
+    authority = _clean(info.get("authority")) or "Municipal Corporation"
+    category = _clean(info.get("category")) or "Civic Issue"
+    issue = _clean(info.get("issue"), 1500)
+    address = _clean(info.get("address"), 300) or "[Your Address]"
+    email = _clean(info.get("email")) or "[Email]"
+    lat, lng = _clean(info.get("lat"), 30), _clean(info.get("lng"), 30)
+
+    lines = [
+        "Date: [Date]", "",
+        "To,", f"The {authority},", f"{city}", "",
+        f"Subject: Complaint regarding {category} at {area}, {city}", "",
+        "Respected Sir/Madam,", "",
+        f"I, {name}, a resident of {city}, would like to bring the following problem "
+        "to your kind attention:", "",
+        issue, "",
+        f"Location: {area}, {city}",
+    ]
+    if lat and lng:
+        lines.append(f"Map location: https://maps.google.com/?q={lat},{lng}")
+    if info.get("has_photo"):
+        lines.append("A photograph of the problem is attached as evidence.")
+    lines += [
+        "",
+        "This problem affects the daily life, safety and health of the residents of the area. "
+        "I request you to kindly inspect the location, take the necessary corrective action "
+        "at the earliest, and inform me in writing about the action taken.", "",
+        "Thanking you,", "",
+        name, address, f"Email: {email}",
+    ]
+    return {
+        "subject": f"Complaint regarding {category} at {area}, {city}",
+        "authority": authority,
+        "category": category,
+        "severity": "Medium",
+        "letter": "\n".join(lines),
+        "ai_used": False,
     }
 
 
@@ -139,14 +262,7 @@ Return ONLY valid JSON:
   "severity": "Low" or "Medium" or "High",
   "description": "1-2 factual sentences describing only what is visible"}}"""
 
-    response = _get_client().models.generate_content(
-        model=MODEL,
-        contents=[types.Part.from_bytes(data=image_bytes, mime_type=mime_type), prompt],
-        config=types.GenerateContentConfig(
-            response_mime_type="application/json",
-            temperature=0.2,
-        ),
-    )
+    response = _generate([types.Part.from_bytes(data=image_bytes, mime_type=mime_type), prompt])
     data = _parse_json(response.text)
     return {
         "is_valid_issue": bool(data.get("is_valid_issue")),
@@ -154,29 +270,3 @@ Return ONLY valid JSON:
         "severity": data.get("severity", "Medium"),
         "description": data.get("description", ""),
     }
-
-    # Compatibility for civic.py /api/reports
-def ai_analyze_issue(description):
-    """Simple fallback used by /api/reports - real letter is via generate_complaint_letter"""
-    desc = (description or "").lower()
-    if any(w in desc for w in ["garbage", "waste", "kuda"]):
-        cat, auth = "Waste Management", "Municipal Corporation"
-    elif any(w in desc for w in ["pothole", "road", "sadak"]):
-        cat, auth = "Road Damage", "Public Works Department"
-    elif "water" in desc:
-        cat, auth = "Water Supply", "Water Department"
-    elif any(w in desc for w in ["drain", "sewer", "nali"]):
-        cat, auth = "Drainage", "Drainage Department"
-    elif "light" in desc:
-        cat, auth = "Street Light", "Electrical Department"
-    else:
-        cat, auth = "Other", "Municipal Corporation"
-
-    return {
-        "issue": description,
-        "category": cat,
-        "responsible_authority": auth,
-        "severity": "Medium",
-        "ai_confidence": 0.8,
-        "priority_score": 50
-    }   
