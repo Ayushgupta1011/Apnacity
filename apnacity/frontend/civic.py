@@ -937,10 +937,20 @@ def init_app():
         print(f"Photo/support routes are off ({e}).")
 
     try:
-        import ai_routes
-        ai_routes.register_ai_routes(app, verify_token, get_db, detect_category, DEPARTMENTS)
-    except ImportError as e:
-        print(f"AI routes are off ({e}). Run: pip install -r req.txt")
+    import ai_routes
+
+    ai_routes.register_ai_routes(
+        app,
+        verify_token,
+        get_db,
+        detect_category,
+        DEPARTMENTS
+    )
+
+    print("Gemini AI routes registered successfully.")
+
+except Exception as e:
+    app.logger.exception("AI ROUTE REGISTRATION FAILED")
 
     return db_ok
 
