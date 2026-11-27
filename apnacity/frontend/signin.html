@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>ApnaCity | Create Account</title>
+    <link rel="icon" href="img/logo.jpeg">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <script src="auth.js" defer></script>
@@ -217,7 +218,7 @@
 
         <div class="logo">
 
-            <img src="C:\Users\AYUSH\Desktop\apnacity\img\logo.jpeg" alt="ApnaCity Logo">
+            <img src="img/logo.jpeg" alt="ApnaCity Logo">
 
             <h2>ApnaCity</h2>
 
@@ -354,18 +355,6 @@
 
                 </div>
 
-                <!-- Admin Checkbox -->
-
-                <div class="admin-option">
-
-                    <input type="checkbox" id="isAdmin" name="isAdmin" value="true">
-
-                    <label for="isAdmin">
-                        Register as Admin
-                    </label>
-
-                </div>
-
                 <!-- Submit Button -->
 
                 <button type="submit" class="signup-btn">
@@ -384,7 +373,7 @@
 
                 Already have an account?
 
-                <a href="/login">Login Instead</a>
+                <a href="login.html">Login Instead</a>
 
             </div>
 
@@ -402,29 +391,7 @@
 
     </div>
 
-    <!-- Email Confirmation Validation -->
 
-    <script>
-        document.getElementById("signupForm")
-            .addEventListener("submit", function(event) {
-
-                const email =
-                    document.getElementById("email").value;
-
-                const confirmEmail =
-                    document.getElementById("confirm-email").value;
-
-                if (email.trim().toLowerCase() !==
-                    confirmEmail.trim().toLowerCase()) {
-
-                    event.preventDefault();
-
-                    alert("Email addresses do not match!");
-
-                }
-
-            });
-    </script>
 
 </body>
 
