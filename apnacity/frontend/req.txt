@@ -4,4 +4,6 @@ mysql-connector-python
 PyJWT
 Werkzeug
 python-dotenv
-google-genai 
+google-genai
+requests
+gunicorn
