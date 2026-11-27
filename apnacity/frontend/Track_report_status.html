@@ -1,25 +1,32 @@
+
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ApnaCity | Track Complaint Status</title>
+
+    <title>ApnaCity | Live Complaint Tracking</title>
+
+    <meta name="description" content="Track your ApnaCity civic complaints and monitor their progress in real time.">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
     <link rel="icon" href="img/logo.jpeg">
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
-         :root {
+
+        :root {
             --primary: #176b4a;
             --secondary: #088178;
             --dark: #183d2d;
@@ -28,255 +35,313 @@
             --white: #ffffff;
             --text: #66756c;
             --border: #e4eee7;
+            --shadow: 0 5px 20px rgba(23, 107, 74, .05);
         }
-        
+
         body {
             font-family: 'Poppins', sans-serif;
             background: var(--background);
             color: var(--dark);
+            min-height: 100vh;
         }
+
+        button, input, select {
+            font-family: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
         /* HEADER */
-        
+
         #header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 15px 6%;
             background: var(--white);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, .08);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, .06);
             position: sticky;
             top: 0;
             z-index: 1000;
         }
-        
+
         .logo-link {
             display: flex;
             align-items: center;
             gap: 10px;
             color: var(--secondary);
             text-decoration: none;
-            font-size: 25px;
+            font-size: 24px;
             font-weight: 700;
         }
-        
+
         .logo {
-            width: 50px;
-            height: 50px;
+            width: 45px;
+            height: 45px;
             object-fit: contain;
         }
-        
+
         #navbar {
             display: flex;
             align-items: center;
             gap: 25px;
             list-style: none;
         }
-        
-        #navbar li a {
-            color: #222;
-            font-size: 14px;
+
+        #navbar a {
+            color: #333;
+            font-size: 13px;
             text-decoration: none;
-            position: relative;
             transition: .3s;
         }
-        
-        #navbar li a:hover,
-        #navbar li a.active {
+
+        #navbar a:hover,
+        #navbar a.active {
             color: var(--secondary);
         }
-        
-        #navbar li a::after {
-            content: "";
-            position: absolute;
-            bottom: -7px;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: var(--secondary);
-            transition: .3s;
-        }
-        
-        #navbar li a:hover::after,
-        #navbar li a.active::after {
-            width: 100%;
-        }
-        
+
         .menu-toggle {
             display: none;
             border: none;
             background: none;
-            font-size: 24px;
+            font-size: 23px;
             color: var(--secondary);
-            cursor: pointer;
         }
-        /* MAIN DASHBOARD */
-        
+
+        /* MAIN */
+
         .container {
             width: 86%;
             max-width: 1400px;
-            margin: 45px auto;
+            margin: 40px auto;
         }
-        
+
         .welcome {
-            margin-bottom: 30px;
+            margin-bottom: 28px;
         }
-        
+
         .welcome h1 {
-            font-size: 30px;
+            font-size: 29px;
             color: var(--dark);
             font-weight: 700;
         }
-        
+
         .welcome p {
-            font-size: 14px;
+            font-size: 13px;
             color: var(--text);
             margin-top: 8px;
         }
-        /* STATISTICS */
-        
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 22px;
-            margin-bottom: 30px;
-        }
-        
-        .stat-card {
-            background: var(--white);
-            border: 1px solid var(--border);
-            padding: 25px;
-            border-radius: 15px;
+
+        /* LIVE TOOLBAR */
+
+        .live-toolbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 5px 20px rgba(23, 107, 74, .04);
-            transition: .3s;
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(23, 107, 74, .10);
-        }
-        
-        .stat-card h2 {
-            font-size: 30px;
-            color: var(--primary);
-        }
-        
-        .stat-card p {
-            color: var(--text);
-            font-size: 12px;
-            margin-top: 5px;
-        }
-        
-        .stat-icon {
-            height: 50px;
-            width: 50px;
-            display: grid;
-            place-items: center;
-            border-radius: 13px;
-            font-size: 20px;
-        }
-        
-        .green {
-            background: #e4f3e9;
-            color: #176b4a;
-        }
-        
-        .orange {
-            background: #fff3df;
-            color: #dc941d;
-        }
-        
-        .blue {
-            background: #e8f0ff;
-            color: #3975cf;
-        }
-        
-        .purple {
-            background: #f0eaff;
-            color: #8053bd;
-        }
-        /* MAIN PANELS */
-        
-        .main-grid {
-            display: grid;
-            grid-template-columns: 1.5fr 1fr;
-            gap: 25px;
-        }
-        
-        .panel {
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+            padding: 16px 18px;
             background: white;
-            padding: 27px;
-            border-radius: 16px;
             border: 1px solid var(--border);
-            box-shadow: 0 5px 20px rgba(23, 107, 74, .04);
+            border-radius: 12px;
         }
-        
-        .panel-heading {
+
+        .live-information {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 23px;
-        }
-        
-        .panel-heading h3 {
-            color: var(--dark);
-            font-size: 17px;
-        }
-        
-        .panel-heading small {
-            color: var(--text);
-            font-size: 11px;
-        }
-        /* SEARCH */
-        
-        .search-box {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-        
-        .search-box input {
-            flex: 1;
-            min-width: 0;
-            padding: 14px;
-            border: 1px solid var(--border);
-            border-radius: 9px;
-            font-family: inherit;
+            flex-wrap: wrap;
+            gap: 11px;
             font-size: 12px;
-            outline: none;
+            font-weight: 600;
         }
-        
-        .search-box input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(23, 107, 74, .08);
+
+        .live-dot {
+            width: 9px;
+            height: 9px;
+            background: #16a34a;
+            border-radius: 50%;
+            box-shadow: 0 0 0 4px #dcfce7;
         }
-        
+
+        .live-dot.error {
+            background: #dc2626;
+            box-shadow: 0 0 0 4px #fee2e2;
+        }
+
+        .live-information small {
+            color: var(--text);
+            font-weight: 400;
+        }
+
+        .refresh-btn {
+            padding: 10px 17px;
+            font-size: 12px;
+        }
+
+        .refresh-btn:disabled {
+            opacity: .6;
+            cursor: wait;
+        }
+
+        /* BUTTONS */
+
         .btn {
             background: var(--primary);
             color: white;
             border: none;
             border-radius: 9px;
             padding: 13px 20px;
-            font-family: inherit;
+            font-size: 12px;
             font-weight: 600;
-            cursor: pointer;
             transition: .3s;
         }
-        
+
         .btn:hover {
             background: #104d35;
             transform: translateY(-2px);
         }
+
+        .btn:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* STATISTICS */
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 22px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            padding: 24px;
+            border-radius: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+            transition: .3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .stat-card h2 {
+            font-size: 29px;
+            color: var(--primary);
+        }
+
+        .stat-card p {
+            color: var(--text);
+            font-size: 11px;
+            margin-top: 5px;
+        }
+
+        .stat-icon {
+            height: 48px;
+            width: 48px;
+            display: grid;
+            place-items: center;
+            border-radius: 13px;
+            font-size: 19px;
+        }
+
+        .green {
+            background: #e4f3e9;
+            color: #176b4a;
+        }
+
+        .orange {
+            background: #fff3df;
+            color: #dc941d;
+        }
+
+        .blue {
+            background: #e8f0ff;
+            color: #3975cf;
+        }
+
+        .purple {
+            background: #f0eaff;
+            color: #8053bd;
+        }
+
+        /* MAIN GRID */
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 25px;
+        }
+
+        .panel {
+            background: white;
+            padding: 26px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            min-width: 0;
+        }
+
+        .panel-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 22px;
+        }
+
+        .panel-heading h3 {
+            color: var(--dark);
+            font-size: 16px;
+        }
+
+        .panel-heading small {
+            color: var(--text);
+            font-size: 11px;
+        }
+
+        /* SEARCH */
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .search-box input {
+            flex: 1;
+            min-width: 0;
+            padding: 13px;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            font-size: 12px;
+            outline: none;
+        }
+
+        .search-box input:focus,
+        .filters select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(23, 107, 74, .08);
+        }
+
         /* FILTERS */
-        
+
         .filters {
             display: flex;
             gap: 12px;
             margin-bottom: 20px;
         }
-        
+
         .filters select {
             flex: 1;
             min-width: 0;
@@ -285,47 +350,56 @@
             border-radius: 8px;
             background: white;
             color: var(--dark);
-            font-family: inherit;
-            font-size: 12px;
+            font-size: 11px;
             outline: none;
         }
-        /* COMPLAINT CARDS */
-        
+
+        /* COMPLAINT CARD */
+
         .complaint {
-            background: #ffffff;
+            width: 100%;
+            display: block;
+            text-align: left;
+            background: white;
             border: 1px solid var(--border);
             padding: 18px;
             border-radius: 12px;
             margin-bottom: 13px;
-            cursor: pointer;
-            transition: .3s;
+            transition: .25s;
+            color: var(--dark);
         }
-        
+
         .complaint:hover,
         .complaint.selected {
             border-color: var(--primary);
             background: #f6fbf7;
             transform: translateX(3px);
         }
-        
+
+        .complaint:focus-visible {
+            outline: 3px solid #80b99b;
+            outline-offset: 3px;
+        }
+
         .complaint-top {
             display: flex;
             justify-content: space-between;
-            gap: 8px;
             align-items: center;
+            gap: 10px;
         }
-        
+
         .complaint h4 {
-            font-size: 14px;
-            color: var(--dark);
+            font-size: 13px;
+            overflow-wrap: anywhere;
         }
-        
+
         .complaint p {
             font-size: 11px;
             color: var(--text);
-            margin-top: 8px;
+            margin-top: 9px;
+            line-height: 1.6;
         }
-        
+
         .complaint-meta {
             display: flex;
             justify-content: space-between;
@@ -333,374 +407,449 @@
             gap: 10px;
             margin-top: 14px;
         }
-        
+
         .complaint-meta span {
             font-size: 10px;
             color: var(--text);
         }
-        /* STATUS BADGES */
-        
-        .status {
-            padding: 6px 12px;
+
+        /* STATUS */
+
+        .status-badge {
+            padding: 6px 11px;
             border-radius: 30px;
             font-size: 10px;
             font-weight: 600;
+            white-space: nowrap;
         }
-        
-        .Pending {
+
+        .status-pending {
             background: #fff3df;
             color: #bd801b;
         }
-        
-        .In-Progress {
+
+        .status-in-progress {
             background: #e7f0ff;
             color: #3672cc;
         }
-        
-        .Resolved {
+
+        .status-resolved {
             background: #e4f3e9;
             color: #176b4a;
         }
-        
-        .Rejected {
+
+        .status-rejected {
             background: #ffe8e8;
             color: #c34242;
         }
-        /* COMPLAINT DETAILS */
-        
+
+        .status-unknown {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        /* DETAILS */
+
         .detail-title {
             color: var(--dark);
             font-size: 17px;
             margin-bottom: 8px;
         }
-        
+
         .detail-id {
             color: var(--text);
             font-size: 11px;
-            margin-bottom: 22px;
+            margin-bottom: 20px;
+            overflow-wrap: anywhere;
         }
-        
+
         .detail-row {
             display: flex;
             justify-content: space-between;
-            gap: 10px;
-            padding: 14px 0;
+            gap: 15px;
+            padding: 13px 0;
             border-bottom: 1px solid var(--border);
             font-size: 11px;
         }
-        
+
         .detail-row span:first-child {
             color: var(--text);
+            flex-shrink: 0;
         }
-        
+
         .detail-row span:last-child {
             font-weight: 600;
             text-align: right;
             color: var(--dark);
+            overflow-wrap: anywhere;
         }
-        /* TIMELINE */
-        
-        .progress-section {
-            margin-top: 28px;
+
+        .detail-status {
+            display: inline-block;
+            margin-bottom: 18px;
         }
-        
-        .progress-section h4 {
-            font-size: 14px;
-            margin-bottom: 25px;
-            color: var(--dark);
-        }
-        
-        .timeline {
-            position: relative;
-            padding-left: 30px;
-        }
-        
-        .timeline::before {
-            content: "";
-            position: absolute;
-            left: 7px;
-            top: 8px;
-            bottom: 20px;
-            width: 2px;
-            background: #dcebe1;
-        }
-        
-        .step {
-            position: relative;
-            margin-bottom: 25px;
-        }
-        
-        .step::before {
-            content: "";
-            position: absolute;
-            left: -28px;
-            top: 3px;
-            height: 13px;
-            width: 13px;
-            background: #dcebe1;
-            border: 2px solid white;
-            outline: 1px solid #dcebe1;
-            border-radius: 50%;
-        }
-        
-        .step.done::before {
-            background: var(--primary);
-            outline-color: var(--primary);
-        }
-        
-        .step h5 {
-            font-size: 12px;
-            color: var(--dark);
-        }
-        
-        .step p {
-            font-size: 10px;
-            color: var(--text);
-            margin-top: 5px;
-        }
+
         /* EMPTY STATE */
-        
+
         .empty {
             padding: 35px 10px;
             text-align: center;
             color: var(--text);
             font-size: 12px;
+            line-height: 1.7;
         }
-        
+
         .empty i {
             display: block;
             font-size: 30px;
             color: var(--primary);
             margin-bottom: 13px;
         }
+
         /* FOOTER */
-        
+
         .apna-footer {
             background: linear-gradient(120deg, #e4f3e9, #f6faf7);
             padding: 35px 8%;
-            margin-top: 70px;
+            margin-top: 65px;
             text-align: center;
             color: var(--text);
             font-size: 12px;
         }
+
         /* RESPONSIVE */
-        
-        @media(max-width:1000px) {
-            #navbar {
-                gap: 13px;
+
+        @media(max-width: 1100px) {
+            .container {
+                width: 92%;
             }
-            #navbar li a {
-                font-size: 11px;
-            }
+
             .stats {
                 grid-template-columns: repeat(2, 1fr);
             }
+
             .main-grid {
                 grid-template-columns: 1fr;
             }
         }
-        
-        @media(max-width:768px) {
+
+        @media(max-width: 768px) {
+            #header {
+                padding: 13px 5%;
+            }
+
             .menu-toggle {
                 display: block;
             }
+
             #navbar {
                 display: none;
                 position: absolute;
-                top: 80px;
+                top: 72px;
                 left: 0;
                 width: 100%;
                 background: white;
                 flex-direction: column;
-                padding: 30px 0;
-                gap: 25px;
+                padding: 25px 0;
+                gap: 22px;
                 box-shadow: 0 8px 15px rgba(0, 0, 0, .08);
             }
+
             #navbar.active {
                 display: flex;
             }
-            #navbar li a {
-                font-size: 15px;
-            }
-        }
-        
-        @media(max-width:600px) {
+
             .container {
                 width: 92%;
                 margin: 30px auto;
             }
+
             .welcome h1 {
-                font-size: 23px;
+                font-size: 24px;
             }
+        }
+
+        @media(max-width: 600px) {
             .stats {
                 gap: 12px;
             }
+
             .stat-card {
                 padding: 15px;
             }
+
             .stat-card h2 {
-                font-size: 24px;
+                font-size: 23px;
             }
+
+            .stat-card p {
+                font-size: 10px;
+            }
+
             .stat-icon {
                 width: 38px;
                 height: 38px;
+                font-size: 16px;
             }
+
             .panel {
                 padding: 17px;
             }
+
             .search-box {
                 flex-wrap: wrap;
             }
+
+            .search-box input,
             .search-box .btn {
                 width: 100%;
+            }
+
+            .filters {
+                flex-direction: column;
+            }
+
+            .live-toolbar {
+                align-items: flex-start;
+            }
+
+            .live-information {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .complaint-top {
+                align-items: flex-start;
             }
         }
     </style>
 </head>
 
-
 <body>
 
     <!-- HEADER -->
 
+    <header id="header">
 
-    <!-- DASHBOARD BODY -->
+        <a href="index.html" class="logo-link">
+            <img src="img/logo.jpeg" alt="ApnaCity Logo" class="logo">
+            <span>ApnaCity</span>
+        </a>
+
+        <button class="menu-toggle" id="menuToggle"
+                type="button" aria-label="Toggle navigation"
+                aria-expanded="false">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <ul id="navbar">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="Register_a_Issue.html">Report Issue</a></li>
+            <li><a href="Track_report_status.html" class="active">Track Status</a></li>
+            <li><a href="Verified_Impact.html">Verified Impact</a></li>
+            <li><a href="login.html">Login</a></li>
+        </ul>
+
+    </header>
+
+    <!-- MAIN DASHBOARD -->
 
     <main class="container">
 
         <!-- PAGE TITLE -->
 
         <section class="welcome">
+
             <h1>Complaint Tracking Dashboard</h1>
-            <p>Monitor civic complaints, track progress and see how your city is improving.</p>
+
+            <p>
+                Monitor civic complaints, track progress and see
+                how your city is improving.
+            </p>
+
+            <!-- LIVE STATUS -->
+
+            <div class="live-toolbar">
+
+                <div class="live-information">
+
+                    <span class="live-dot" id="liveDot"></span>
+
+                    <span id="syncStatus" aria-live="polite">
+                        Connecting to ApnaCity...
+                    </span>
+
+                    <small id="lastUpdated">
+                        Waiting for data
+                    </small>
+
+                </div>
+
+                <button class="btn refresh-btn" id="refreshBtn"
+                        type="button">
+                    <i class="fa-solid fa-rotate"></i>
+                    Refresh Now
+                </button>
+
+            </div>
+
         </section>
 
-
-        <!-- STATISTICS CARDS -->
+        <!-- STATISTICS -->
 
         <section class="stats">
 
             <div class="stat-card">
+
                 <div>
                     <h2 id="total">0</h2>
                     <p>Total Complaints</p>
                 </div>
+
                 <div class="stat-icon green">
                     <i class="fa-solid fa-file-lines"></i>
                 </div>
+
             </div>
 
             <div class="stat-card">
+
                 <div>
                     <h2 id="pending">0</h2>
                     <p>Pending Complaints</p>
                 </div>
+
                 <div class="stat-icon orange">
                     <i class="fa-solid fa-clock"></i>
                 </div>
+
             </div>
 
             <div class="stat-card">
+
                 <div>
                     <h2 id="progress">0</h2>
                     <p>In Progress</p>
                 </div>
+
                 <div class="stat-icon blue">
                     <i class="fa-solid fa-spinner"></i>
                 </div>
+
             </div>
 
             <div class="stat-card">
+
                 <div>
                     <h2 id="resolved">0</h2>
                     <p>Resolved Issues</p>
                 </div>
+
                 <div class="stat-icon purple">
                     <i class="fa-solid fa-circle-check"></i>
                 </div>
+
             </div>
 
         </section>
 
-
-        <!-- COMPLAINT TRACKING SECTION -->
+        <!-- MAIN PANELS -->
 
         <section class="main-grid">
 
-            <!-- LEFT: COMPLAINT LIST -->
+            <!-- COMPLAINT LIST -->
 
             <div class="panel">
 
                 <div class="panel-heading">
+
                     <h3>
-                        <i class="fa-solid fa-list-check"></i> My Complaints
+                        <i class="fa-solid fa-list-check"></i>
+                        My Complaints
                     </h3>
 
                     <small id="resultCount">0 Records</small>
-                </div>
 
+                </div>
 
                 <!-- SEARCH -->
 
                 <div class="search-box">
 
-                    <input type="text" id="searchInput" placeholder="Enter Complaint ID (CIV-2026...)">
+                    <input
+                        type="text"
+                        id="searchInput"
+                        placeholder="Search Complaint ID or issue..."
+                        autocomplete="off"
+                        aria-label="Search complaints"
+                    >
 
-                    <button class="btn" onclick="searchComplaint()">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                    Search
-                </button>
+                    <button class="btn" id="searchButton"
+                            type="button">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        Search
+                    </button>
 
                 </div>
-
 
                 <!-- FILTERS -->
 
                 <div class="filters">
 
-                    <select id="statusFilter">
-                    <option value="All">All Status</option>
-                    <option value="Pending">Pending</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Resolved">Resolved</option>
-                    <option value="Rejected">Rejected</option>
-                </select>
+                    <select id="statusFilter" aria-label="Filter by status">
 
-                    <select id="categoryFilter">
-                    <option value="All">All Categories</option>
-                    <option value="Road">Road</option>
-                    <option value="Water">Water</option>
-                    <option value="Waste">Waste</option>
-                    <option value="Drainage">Drainage</option>
-                    <option value="Street Light">Street Light</option>
-                </select>
+                        <option value="All">All Status</option>
+                        <option value="Pending">Pending</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Resolved">Resolved</option>
+                        <option value="Rejected">Rejected</option>
+
+                    </select>
+
+                    <select id="categoryFilter" aria-label="Filter by category">
+
+                        <option value="All">All Categories</option>
+                        <option value="Road">Road</option>
+                        <option value="Water">Water</option>
+                        <option value="Waste">Waste</option>
+                        <option value="Drainage">Drainage</option>
+                        <option value="Street Light">Street Light</option>
+
+                    </select>
 
                 </div>
 
-
                 <!-- COMPLAINT RECORDS -->
 
-                <div id="complaintList">
+                <div id="complaintList" aria-live="polite">
+
+                    <div class="empty">
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+                        Loading your complaints...
+                    </div>
 
                 </div>
 
             </div>
 
-
-            <!-- RIGHT: COMPLAINT DETAILS -->
+            <!-- COMPLAINT DETAILS -->
 
             <div class="panel">
 
                 <div class="panel-heading">
+
                     <h3>
-                        <i class="fa-solid fa-file-circle-check"></i> Complaint Details
+                        <i class="fa-solid fa-file-circle-check"></i>
+                        Complaint Details
                     </h3>
+
                 </div>
 
-                <div id="complaintDetails">
+                <div id="complaintDetails" aria-live="polite">
 
                     <div class="empty">
-                        <i class="fa-solid fa-hand-pointer"></i> Select a complaint to view its details.
+                        <i class="fa-solid fa-hand-pointer"></i>
+                        Select a complaint to view its details.
                     </div>
 
                 </div>
@@ -711,7 +860,6 @@
 
     </main>
 
-
     <!-- FOOTER -->
 
     <footer class="apna-footer">
@@ -721,149 +869,770 @@
         </p>
 
         <p style="margin-top:8px;">
-            Made with <span style="color:#e74c3c;">♥</span> for Smarter Cities
+            Made with <span style="color:#e74c3c;">♥</span>
+            for Smarter Cities
         </p>
 
     </footer>
 
-
     <!-- JAVASCRIPT -->
 
     <script>
-        // MOBILE MENU
 
-        const menuToggle = document.getElementById("menuToggle");
-        const navbar = document.getElementById("navbar");
+    "use strict";
 
-        if (menuToggle) menuToggle.addEventListener("click", () => {
+    // =================================================
+    // APNACITY LIVE COMPLAINT TRACKING
+    // =================================================
+
+    const $ = (id) => document.getElementById(id);
+
+    const API_URL = "/api/reports";
+
+    const REFRESH_INTERVAL = 5000;
+
+    let complaints = [];
+    let selectedId = null;
+    let loading = false;
+    let firstLoad = true;
+
+    // =================================================
+    // MOBILE MENU
+    // =================================================
+
+    const menuToggle = $("menuToggle");
+    const navbar = $("navbar");
+
+    if (menuToggle && navbar) {
+
+        menuToggle.addEventListener("click", function () {
 
             navbar.classList.toggle("active");
 
             const isOpen = navbar.classList.contains("active");
 
-            menuToggle.setAttribute("aria-expanded", isOpen);
+            menuToggle.setAttribute(
+                "aria-expanded",
+                String(isOpen)
+            );
 
-            menuToggle.innerHTML = isOpen ?
-                '<i class="fa-solid fa-xmark"></i>' :
-                '<i class="fa-solid fa-bars"></i>';
+            menuToggle.innerHTML = isOpen
+                ? '<i class="fa-solid fa-xmark"></i>'
+                : '<i class="fa-solid fa-bars"></i>';
 
         });
 
+    }
 
-        // FOOTER YEAR
+    // =================================================
+    // FOOTER YEAR
+    // =================================================
 
-        document.getElementById("year").textContent =
-            new Date().getFullYear();
+    $("year").textContent = new Date().getFullYear();
 
-        // ---- LOAD COMPLAINTS FROM civic.py ----
-        let complaints = [];
-        let selectedId = null;
+    // =================================================
+    // HELPERS
+    // =================================================
 
-        const esc = v => String(v == null ? "" : v).replace(/[&<>"']/g,
-            c => ({
-                "&": "&amp;",
-                "<": "&lt;",
-                ">": "&gt;",
-                '"': "&quot;",
-                "'": "&#39;"
-            }[c]));
-        const statusClass = s => String(s || "Pending").replace(/\s+/g, "-");
+    function safeText(value) {
 
-        async function loadComplaints() {
-            const list = document.getElementById("complaintList");
-            try {
-                const res = await fetch("/api/reports", {
-                    credentials: "same-origin"
-                });
+        return value === null || value === undefined
+            ? ""
+            : String(value);
 
-                if (res.status === 401) {
-                    window.location.href = "login.html";
-                    return;
-                }
-                const data = await res.json();
-                complaints = data.reports || [];
-            } catch (err) {
-                list.innerHTML = '<div class="empty">Could not reach the server. Is civic.py running?</div>';
-                return;
-            }
-            render();
+    }
+
+    function normaliseStatus(value) {
+
+        const status = safeText(value)
+            .trim()
+            .toLowerCase()
+            .replace(/[_-]+/g, " ");
+
+        if (status === "pending") return "Pending";
+
+        if (
+            status === "in progress" ||
+            status === "inprogress"
+        ) {
+            return "In Progress";
         }
 
-        function render() {
-            const q = document.getElementById("searchInput").value.trim().toLowerCase();
-            const status = document.getElementById("statusFilter").value;
-            const cat = document.getElementById("categoryFilter").value.toLowerCase();
+        if (status === "resolved") return "Resolved";
 
-            const countOf = s => complaints.filter(c => c.Complaint_Status === s).length;
-            document.getElementById("total").textContent = complaints.length;
-            document.getElementById("pending").textContent = countOf("Pending");
-            document.getElementById("progress").textContent = countOf("In Progress");
-            document.getElementById("resolved").textContent = countOf("Resolved");
+        if (status === "rejected") return "Rejected";
 
-            const shown = complaints.filter(c =>
-                (!q || c.Complaint_ID.toLowerCase().includes(q)) &&
-                (status === "All" || c.Complaint_Status === status) &&
-                (cat === "all" || (c.Category || "").toLowerCase().includes(cat))
+        return safeText(value).trim() || "Unknown";
+
+    }
+
+    function statusSlug(status) {
+
+        const normal = normaliseStatus(status);
+
+        const classes = {
+            "Pending": "status-pending",
+            "In Progress": "status-in-progress",
+            "Resolved": "status-resolved",
+            "Rejected": "status-rejected"
+        };
+
+        return classes[normal] || "status-unknown";
+
+    }
+
+    function makeElement(tag, className, value) {
+
+        const element = document.createElement(tag);
+
+        if (className) {
+            element.className = className;
+        }
+
+        if (value !== undefined) {
+            element.textContent = safeText(value);
+        }
+
+        return element;
+
+    }
+
+    function formatDate(value) {
+
+        if (!value) return "Not available";
+
+        const date = new Date(value);
+
+        if (Number.isNaN(date.getTime())) {
+            return safeText(value);
+        }
+
+        return date.toLocaleString("en-IN", {
+            dateStyle: "medium",
+            timeStyle: "short"
+        });
+
+    }
+
+    function setLiveStatus(message, error) {
+
+        $("syncStatus").textContent = message;
+
+        $("liveDot").classList.toggle(
+            "error",
+            Boolean(error)
+        );
+
+    }
+
+    function showEmpty(element, message) {
+
+        if (!element) return;
+
+        element.replaceChildren();
+
+        const box = makeElement("div", "empty");
+
+        const icon = makeElement("i", "fa-solid fa-inbox");
+
+        const paragraph = makeElement("p", "", message);
+
+        box.append(icon, paragraph);
+
+        element.appendChild(box);
+
+    }
+
+    // =================================================
+    // NORMALISE BACKEND DATA
+    // =================================================
+
+    function normaliseComplaint(row) {
+
+        return {
+
+            Complaint_ID: safeText(
+                row.Complaint_ID || row.complaint_id
+            ),
+
+            City: safeText(
+                row.City || row.city
+            ),
+
+            Area_Locality: safeText(
+                row.Area_Locality ||
+                row.area_locality ||
+                row.Area
+            ),
+
+            Issue: safeText(
+                row.Issue ||
+                row.issue ||
+                row.description
+            ),
+
+            Category: safeText(
+                row.Category ||
+                row.category ||
+                "General"
+            ),
+
+            Responsible_Authority: safeText(
+                row.Responsible_Authority ||
+                row.responsible_authority
+            ),
+
+            Severity: safeText(
+                row.Severity ||
+                row.severity
+            ),
+
+            Complaint_Status: normaliseStatus(
+                row.Complaint_Status ||
+                row.complaint_status ||
+                "Pending"
+            ),
+
+            Days_Open: row.Days_Open ?? row.days_open ?? 0,
+
+            Resolution_Verified: safeText(
+                row.Resolution_Verified ||
+                row.resolution_verified
+            ),
+
+            Priority_Score:
+                row.Priority_Score ??
+                row.priority_score ??
+                0,
+
+            Created_At:
+                row.Created_At ||
+                row.created_at ||
+                null
+
+        };
+
+    }
+
+    // =================================================
+    // LOAD COMPLAINTS FROM FLASK / MYSQL
+    // =================================================
+
+    async function loadComplaints() {
+
+        if (loading) return;
+
+        loading = true;
+
+        const refreshBtn = $("refreshBtn");
+
+        if (refreshBtn) {
+            refreshBtn.disabled = true;
+        }
+
+        setLiveStatus("Updating complaints...", false);
+
+        try {
+
+            const response = await fetch(API_URL, {
+
+                method: "GET",
+
+                credentials: "same-origin",
+
+                cache: "no-store",
+
+                headers: {
+                    "Accept": "application/json"
+                }
+
+            });
+
+            if (response.status === 401) {
+
+                window.location.href = "login.html";
+
+                return;
+
+            }
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+
+                throw new Error(
+                    data.message || "Unable to load complaints."
+                );
+
+            }
+
+            if (!Array.isArray(data.reports)) {
+
+                throw new Error(
+                    "Invalid complaint data returned by server."
+                );
+
+            }
+
+            complaints = data.reports
+                .map(normaliseComplaint)
+                .filter(c => c.Complaint_ID);
+
+            firstLoad = false;
+
+            if (
+                selectedId &&
+                !complaints.some(
+                    c => c.Complaint_ID === selectedId
+                )
+            ) {
+
+                selectedId = null;
+
+            }
+
+            // Refresh list and statistics.
+
+            render();
+
+            // Keep the currently selected complaint visible.
+
+            if (selectedId) {
+
+                showDetails(selectedId);
+
+            }
+
+            $("lastUpdated").textContent =
+                "Last updated: " +
+                new Date().toLocaleTimeString("en-IN");
+
+            setLiveStatus(
+                "Live updates active",
+                false
             );
 
-            document.getElementById("resultCount").textContent = shown.length + " Records";
-            const list = document.getElementById("complaintList");
+        } catch (error) {
 
-            if (!shown.length) {
-                list.innerHTML = '<div class="empty">No complaints found.</div>';
-                return;
+            console.error(
+                "ApnaCity API error:",
+                error
+            );
+
+            setLiveStatus(
+                "Connection problem",
+                true
+            );
+
+            if (firstLoad) {
+
+                showEmpty(
+                    $("complaintList"),
+                    error.message || "Could not load complaints."
+                );
+
             }
 
-            list.innerHTML = shown.map(c => `
-                <div class="complaint ${c.Complaint_ID === selectedId ? "selected" : ""}"
-                     onclick="showDetails('${esc(c.Complaint_ID)}')">
-                    <div class="complaint-top">
-                        <h4>${esc(c.Category)}</h4>
-                        <span class="status ${statusClass(c.Complaint_Status)}">${esc(c.Complaint_Status)}</span>
-                    </div>
-                    <p>${esc(c.Issue)}</p>
-                    <div class="complaint-meta">
-                        <span>${esc(c.Complaint_ID)}</span>
-                        <span>${esc(c.Area_Locality || c.City || "")}</span>
-                    </div>
-                </div>`).join("");
+        } finally {
+
+            loading = false;
+
+            if (refreshBtn) {
+                refreshBtn.disabled = false;
+            }
+
         }
 
-        function showDetails(id) {
-            selectedId = id;
-            const c = complaints.find(x => x.Complaint_ID === id);
-            if (!c) return;
+    }
 
-            const row = (label, value) =>
-                `<div class="detail-row"><span>${label}</span><span>${esc(value)}</span></div>`;
+    // =================================================
+    // STATISTICS
+    // =================================================
 
-            document.getElementById("complaintDetails").innerHTML = `
-                <h3 class="detail-title">${esc(c.Category)}</h3>
-                <div class="detail-id">${esc(c.Complaint_ID)}</div>
-                ${row("Status", c.Complaint_Status)}
-                ${row("Issue", c.Issue)}
-                ${row("City", c.City || "-")}
-                ${row("Area", c.Area_Locality || "-")}
-                ${row("Responsible Authority", c.Responsible_Authority)}
-                ${row("Severity", c.Severity)}
-                ${row("Priority Score", c.Priority_Score)}
-                ${row("Days Open", c.Days_Open)}
-                ${row("Resolution Verified", c.Resolution_Verified)}`;
+    function renderStatistics() {
+
+        const total = complaints.length;
+
+        const pending = complaints.filter(
+            c => c.Complaint_Status === "Pending"
+        ).length;
+
+        const progress = complaints.filter(
+            c => c.Complaint_Status === "In Progress"
+        ).length;
+
+        const resolved = complaints.filter(
+            c => c.Complaint_Status === "Resolved"
+        ).length;
+
+        $("total").textContent = total;
+
+        $("pending").textContent = pending;
+
+        $("progress").textContent = progress;
+
+        $("resolved").textContent = resolved;
+
+    }
+
+    // =================================================
+    // SEARCH AND FILTER
+    // =================================================
+
+    function getFilteredComplaints() {
+
+        const query = $("searchInput")
+            .value
+            .trim()
+            .toLowerCase();
+
+        const selectedStatus = $("statusFilter").value;
+
+        const selectedCategory = $("categoryFilter")
+            .value
+            .toLowerCase();
+
+        return complaints.filter(function (c) {
+
+            const matchesSearch =
+
+                !query ||
+
+                c.Complaint_ID.toLowerCase().includes(query) ||
+
+                c.Issue.toLowerCase().includes(query);
+
+            const matchesStatus =
+
+                selectedStatus === "All" ||
+
+                c.Complaint_Status === selectedStatus;
+
+            const matchesCategory =
+
+                selectedCategory === "all" ||
+
+                c.Category.toLowerCase().includes(
+                    selectedCategory
+                );
+
+            return (
+                matchesSearch &&
+                matchesStatus &&
+                matchesCategory
+            );
+
+        });
+
+    }
+
+    // =================================================
+    // COMPLAINT CARD
+    // =================================================
+
+    function createComplaintCard(c) {
+
+        const card = makeElement(
+            "button",
+            "complaint"
+        );
+
+        card.type = "button";
+
+        card.setAttribute(
+            "aria-pressed",
+            String(c.Complaint_ID === selectedId)
+        );
+
+        if (c.Complaint_ID === selectedId) {
+
+            card.classList.add("selected");
+
+        }
+
+        const top = makeElement(
+            "div",
+            "complaint-top"
+        );
+
+        const heading = makeElement(
+            "h4",
+            "",
+            c.Category
+        );
+
+        const badge = makeElement(
+            "span",
+            "status-badge " + statusSlug(c.Complaint_Status),
+            c.Complaint_Status
+        );
+
+        top.append(heading, badge);
+
+        const issue = makeElement(
+            "p",
+            "",
+            c.Issue
+        );
+
+        const meta = makeElement(
+            "div",
+            "complaint-meta"
+        );
+
+        const id = makeElement(
+            "span",
+            "",
+            c.Complaint_ID
+        );
+
+        const location = makeElement(
+            "span",
+            "",
+            c.Area_Locality ||
+            c.City ||
+            "Location unavailable"
+        );
+
+        meta.append(id, location);
+
+        card.append(top, issue, meta);
+
+        card.addEventListener("click", function () {
+
+            showDetails(c.Complaint_ID);
+
+        });
+
+        return card;
+
+    }
+
+    // =================================================
+    // RENDER COMPLAINTS
+    // =================================================
+
+    function render() {
+
+        renderStatistics();
+
+        const list = $("complaintList");
+
+        const shown = getFilteredComplaints();
+
+        $("resultCount").textContent =
+            shown.length + " Records";
+
+        list.replaceChildren();
+
+        if (shown.length === 0) {
+
+            showEmpty(
+                list,
+                complaints.length === 0
+                    ? "You have not filed any complaints yet."
+                    : "No complaints match your search or filters."
+            );
+
+            return;
+
+        }
+
+        shown.forEach(function (complaint) {
+
+            list.appendChild(
+                createComplaintCard(complaint)
+            );
+
+        });
+
+    }
+
+    // =================================================
+    // COMPLAINT DETAILS
+    // =================================================
+
+    function showDetails(id) {
+
+        selectedId = id;
+
+        const complaint = complaints.find(
+            c => c.Complaint_ID === id
+        );
+
+        const panel = $("complaintDetails");
+
+        if (!complaint) return;
+
+        panel.replaceChildren();
+
+        const heading = makeElement(
+            "h3",
+            "detail-title",
+            complaint.Category
+        );
+
+        const idElement = makeElement(
+            "div",
+            "detail-id",
+            complaint.Complaint_ID
+        );
+
+        const badge = makeElement(
+            "span",
+            "status-badge detail-status " +
+            statusSlug(complaint.Complaint_Status),
+            complaint.Complaint_Status
+        );
+
+        panel.append(
+            heading,
+            idElement,
+            badge
+        );
+
+        function addRow(label, value) {
+
+            const row = makeElement(
+                "div",
+                "detail-row"
+            );
+
+            const left = makeElement(
+                "span",
+                "",
+                label
+            );
+
+            const right = makeElement(
+                "span",
+                "",
+                value === "" || value === null
+                    ? "-"
+                    : value
+            );
+
+            row.append(left, right);
+
+            panel.appendChild(row);
+
+        }
+
+        addRow("Issue", complaint.Issue);
+
+        addRow("City", complaint.City);
+
+        addRow("Area", complaint.Area_Locality);
+
+        addRow(
+            "Responsible Authority",
+            complaint.Responsible_Authority
+        );
+
+        addRow("Severity", complaint.Severity);
+
+        addRow(
+            "Priority Score",
+            complaint.Priority_Score
+        );
+
+        addRow(
+            "Days Open",
+            complaint.Days_Open
+        );
+
+        addRow(
+            "Resolution Verified",
+            complaint.Resolution_Verified
+        );
+
+        addRow(
+            "Date Submitted",
+            formatDate(complaint.Created_At)
+        );
+
+        render();
+
+    }
+
+    // =================================================
+    // EVENT LISTENERS
+    // =================================================
+
+    $("searchButton").addEventListener(
+        "click",
+        function () {
             render();
         }
+    );
 
-        function searchComplaint() {
-            render();
+    $("searchInput").addEventListener(
+        "input",
+        render
+    );
+
+    $("statusFilter").addEventListener(
+        "change",
+        render
+    );
+
+    $("categoryFilter").addEventListener(
+        "change",
+        render
+    );
+
+    $("refreshBtn").addEventListener(
+        "click",
+        loadComplaints
+    );
+
+    // =================================================
+    // AUTOMATIC LIVE UPDATE
+    // =================================================
+
+    // Load as soon as the page opens.
+
+    loadComplaints();
+
+    // Fetch fresh database data every five seconds.
+
+    setInterval(function () {
+
+        if (!document.hidden) {
+
+            loadComplaints();
+
         }
 
-        document.getElementById("searchInput").addEventListener("input", render);
-        document.getElementById("statusFilter").addEventListener("change", render);
-        document.getElementById("categoryFilter").addEventListener("change", render);
+    }, REFRESH_INTERVAL);
 
-        loadComplaints();
+    // Refresh when the user returns to the page.
+
+    document.addEventListener(
+        "visibilitychange",
+        function () {
+
+            if (!document.hidden) {
+
+                loadComplaints();
+
+            }
+
+        }
+    );
+
+    // Reconnect when internet returns.
+
+    window.addEventListener(
+        "online",
+        loadComplaints
+    );
+
+    console.log(
+        "ApnaCity Live Complaint Dashboard Loaded."
+    );
+
     </script>
 
 </body>
-
-
 </html>
